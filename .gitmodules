@@ -1,0 +1,3 @@
+[submodule "themes/latitude"]
+	path = themes/latitude
+	url = https://github.com/Chemiseblanc/latitude.git

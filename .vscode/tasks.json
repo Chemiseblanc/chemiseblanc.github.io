@@ -1,0 +1,53 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Hugo serve localhost",
+            "type": "shell",
+            "isBackground": true,
+            "command": "hugo",
+            "args": [
+                "server"
+            ]
+        },
+        {
+            "label": "Hugo serve localhost (Draft)",
+            "type": "shell",
+            "isBackground": true,
+            "command": "hugo",
+            "args": [
+                "server",
+                "-D"
+            ]
+        },
+        {
+            "label": "Hugo serve network",
+            "type": "shell",
+            "isBackground": true,
+            "command": "hugo",
+            "args": [
+                "server",
+                "--bind=\"0.0.0.0\""
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Hugo serve network (Draft)",
+            "type": "shell",
+            "isBackground": true,
+            "command": "hugo",
+            "args": [
+                "server",
+                "-D",
+                "--bind=\"0.0.0.0\""
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

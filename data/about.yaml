@@ -1,0 +1,32 @@
+# File paths are relative from the assets folder
+banner: profile/banner.jpg
+profile: profile/profile.jpg
+#resume: profile/Resume-John-Doe-2021.pdf
+name: Matt Gibson
+location: Ottawa, ON
+employment:
+- name: Goldak Technologies
+  title: Software Developer
+  url: https://goldaktec.com
+- name: Carleton University
+  title: PhD Candidate
+  url: https://carleton.ca
+summary: |
+  I specialize in high performance C++/CUDA in the field of computational science and engineering.
+
+  I'm currently finishing my PhD in Mechanical Engineering on the topic of welding arc simulation.
+
+  In my spare time I enjoy cooking and working on side projects such as the theme for this website.
+# For the icon parameter use the css class names for font awesome
+# these can be found here: https://fontawesome.com/v5.15/icons
+social:
+- name: Email
+  icon: fas fa-envelope-square
+  url: mailto://matt@mgibson.ca
+- name: Github
+  icon: fab fa-github-square
+  url: https://github.com/Chemiseblanc
+- name: Instagram
+  icon: fab fa-instagram-square
+  url: https://www.instagram.com/chemiseblanc/
+

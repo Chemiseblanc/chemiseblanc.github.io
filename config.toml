@@ -1,0 +1,8 @@
+baseURL = "https://mgibson.ca/"
+languageCode = "en-us"
+title = "Matt's Homepage"
+theme = "latitude"
+summaryLength = 24
+
+[taxonomies]
+tag = 'tags'
