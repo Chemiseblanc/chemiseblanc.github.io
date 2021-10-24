@@ -1,6 +1,6 @@
 ---
 title: I should remove the need for these
-date: {{ .Date }}
+date: 2021-10-24T14:40:00-04:00
 draft: false
 #tags:
 #-
