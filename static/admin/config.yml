@@ -29,6 +29,9 @@ collections:
       name: longform
       widget: boolean
       default: true
+    - label: Cover Image
+      name: cover
+      widget: image
     - label: Tags
       name: tags
       required: false
