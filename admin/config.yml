@@ -97,19 +97,9 @@ collections:
       name: longform
       widget: boolean
       default: false
-    - label: Image
-      name: resources
-      widget: list
-      max: 1
-      min: 1
-      fields:
-        - label: Name
-          name: name
-          widget: string
-          default: "cover"
-        - label: Image
-          name: src
-          widget: image
+    - label: Photo
+      name: cover
+      widget: image
     - label: Tags
       name: tags
       required: false
