@@ -3,6 +3,8 @@ title: Hello Netlify-CMS
 date: 2021-10-25T15:03:26.257Z
 draft: false
 longform: false
+tags:
+  - hugo
 ---
 A little difficult to setup for a github pages site but being able to tailor the editor to my custom content types is great. 
 
