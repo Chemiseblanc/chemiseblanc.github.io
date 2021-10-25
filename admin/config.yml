@@ -27,7 +27,7 @@ collections:
       default: true
     - label: Generate Seperate Post
       name: longform
-      widget: boolean
+      widget: hidden
       default: true
     - label: Cover Image
       name: cover
@@ -64,11 +64,11 @@ collections:
       widget: datetime
     - label: Draft
       name: draft
-      widget: boolean
+      widget: hidden
       default: false
     - label: Generate Seperate Post
       name: longform
-      widget: boolean
+      widget: hidden
       default: false
     - label: Tags
       name: tags
@@ -94,11 +94,11 @@ collections:
       widget: datetime
     - label: Draft
       name: draft
-      widget: boolean
+      widget: hidden
       default: false
     - label: Generate Seperate Post
       name: longform
-      widget: boolean
+      widget: hidden
       default: false
     - label: Photo
       name: cover
