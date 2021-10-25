@@ -2,9 +2,6 @@
 title: Lac Meech
 date: 2021-10-23T13:05:38-04:00
 draft: false
-resources:
-  - name: cover
-    src: meech.jpg
 longform: false
 cover: meech.jpg
 ---
