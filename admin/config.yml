@@ -10,6 +10,7 @@ collections:
   label: Posts
   label_singular: Post
   folder: content/posts
+  create: true
   path: '{{slug}}/index'
   media_folder: media
   public_folder: media
@@ -46,6 +47,7 @@ collections:
   label: Short Posts
   label_singular: Short Post
   folder: content/shorts
+  create: true
   fields:
     - label: Title
       name: title
@@ -68,6 +70,7 @@ collections:
   label: Photos
   label_singular: Photo
   folder: content/photos
+  create: true
   path: '{{slug}}/index'
   media_folder: ''
   public_folder: ''
