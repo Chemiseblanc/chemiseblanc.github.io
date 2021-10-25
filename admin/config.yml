@@ -1,0 +1,105 @@
+backend:
+  name: github
+  repo: chemiseblanc/chemiseblanc.github.io
+  branch: master
+local_backend: true
+media_folder: static/media/
+public_folder: /media
+collections:
+- name: posts
+  label: Posts
+  label_singular: Post
+  folder: content/posts
+  path: '{{slug}}/index'
+  media_folder: media
+  public_folder: media
+  fields:
+    - label: Title
+      name: title
+      widget: string
+    - label: Publish Date
+      name: date
+      widget: datetime
+    - label: Draft
+      name: draft
+      widget: boolean
+      default: true
+    - label: Tags
+      name: tags
+      required: false
+      widget: list
+    - label: Resources
+      name: resources
+      widget: list
+      required: false
+      fields:
+        - label: Name
+          name: name
+          widget: string
+        - label: Source
+          name: src
+          widget: file
+    - label: Body
+      name: body
+      widget: markdown
+- name: shorts
+  label: Short Posts
+  label_singular: Short Post
+  folder: content/shorts
+  fields:
+    - label: Title
+      name: title
+      widget: string
+    - label: Publish Date
+      name: date
+      widget: datetime
+    - label: Draft
+      name: draft
+      widget: boolean
+      default: false
+    - label: Tags
+      name: tags
+      required: false
+      widget: list
+    - label: Body
+      name: body
+      widget: markdown
+- name: photos
+  label: Photos
+  label_singular: Photo
+  folder: content/photos
+  path: '{{slug}}/index'
+  media_folder: ''
+  public_folder: ''
+  fields:
+    - label: Title
+      name: title
+      widget: string
+    - label: Date
+      name: date
+      widget: datetime
+    - label: Draft
+      name: draft
+      widget: boolean
+      default: false
+    - label: Image
+      name: resources
+      widget: list
+      max: 1
+      min: 1
+      fields:
+        - label: Name
+          name: name
+          widget: string
+          default: "cover"
+        - label: Image
+          name: src
+          widget: image
+    - label: Tags
+      name: tags
+      required: false
+      widget: list
+    - label: Caption
+      name: body
+      widget: markdown
+      required: false
