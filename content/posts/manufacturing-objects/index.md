@@ -517,7 +517,9 @@ public class Application {
 
     String typeOfStore = args[1];
     String otherTypeOfStore = args[2];
-    DoublePetStore store = new DoublePetStore(registry.create(typeOfStore), registry.create(otherTypeOfStore));
+    DoublePetStore store = new DoublePetStore(
+                                  registry.create(typeOfStore),
+                                  registry.create(otherTypeOfStore));
 
     store.useAnimal();
     store.useOtherAnimal();
