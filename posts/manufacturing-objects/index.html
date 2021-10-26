@@ -496,7 +496,9 @@ Another challenge is being able to recognize when it is appropriate to refactor 
 
     String typeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>1<span style=color:#f92672>];</span>
     String otherTypeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>2<span style=color:#f92672>];</span>
-    DoublePetStore store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> DoublePetStore<span style=color:#f92672>(</span>registry<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>),</span> registry<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>otherTypeOfStore<span style=color:#f92672>));</span>
+    DoublePetStore store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> DoublePetStore<span style=color:#f92672>(</span>
+                                  registry<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>),</span>
+                                  registry<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>otherTypeOfStore<span style=color:#f92672>));</span>
 
     store<span style=color:#f92672>.</span><span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>();</span>
     store<span style=color:#f92672>.</span><span style=color:#a6e22e>useOtherAnimal</span><span style=color:#f92672>();</span>
