@@ -31,6 +31,7 @@ collections:
       default: true
     - label: Cover Image
       name: cover
+      required: false
       widget: image
     - label: Tags
       name: tags
