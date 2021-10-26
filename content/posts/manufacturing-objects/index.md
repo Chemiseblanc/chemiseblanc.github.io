@@ -8,7 +8,7 @@ tags:
 resources: []
 ---
 In object oriented programming, factory patterns are common design patterns for object creation. 
-Online I've found some explainations of them lacking and often confused with a different concept entirely.
+Online I've found some explanations of them lacking and often confused with a different concept entirely.
 
 In this post I'm going to try and clarify the differences between these patterns and concepts and the purposes behind them.
 <!--more-->
@@ -171,7 +171,7 @@ public class DoubleFactoryMethodPetStore extends PetStore {
 }
 ```
 
-By adding a second abstract method to the parent class we now have to change the implementation of the child classes to accomodate
+By adding a second abstract method to the parent class we now have to change the implementation of the child classes to accommodate
 
 ```java
 public class CatCatPetStore extends DoubleFactoryMethodPetStore {
@@ -275,7 +275,7 @@ public class CatFactory extends AbstractAnimalFactory {
 }
 ```
 
-But unlike when the factory method was located within the target class, we can extend the class without creating a multiplicitive amount of overhead
+But unlike when the factory method was located within the target class, we can extend the class without creating a multiplicative amount of overhead
 
 ```java
 
@@ -320,7 +320,7 @@ public class Application {
 Now we have been able to successfully decouple the requirements of creating the Animal objects from the PetStore class which uses them but we still have the problem of selecting which concrete factory objects to create.
 
 ### Dynamic Class Instantiation
-The ability to instantiate an object where the type name is stored in a parameter is called dynamic instantation. Programming languages such as Java and C++ don't support this at a syntax level so to achieve the same effect the behaviour must be implemented by hand.
+The ability to instantiate an object where the type name is stored in a parameter is called dynamic instantiation. Programming languages such as Java and C++ don't support this at a syntax level so to achieve the same effect the behaviour must be implemented by hand.
 ```java
 public class AnimalFactory {
   public Animal create(String name) {
@@ -346,7 +346,7 @@ Here we have a single factory method in the ```AnimalFactory``` class which take
 Like in the initial example, creation of the concrete Animal objects is not delegated to an object but we have been able to achieve the effect of being able to create the concrete class by passing the type name as a string.
 
 ## Putting it all together
-Now that we have introduced the Factory Method pattern, the Abstract Factory pattern, and the concept of Dynamic Instantation we can show how these concepts fit together to create a piece of well organized, extensible software.
+Now that we have introduced the Factory Method pattern, the Abstract Factory pattern, and the concept of Dynamic Instantiation we can show how these concepts fit together to create a piece of well organized, extensible software.
 ```java
 import java.util.HashMap;
 
@@ -393,10 +393,10 @@ public class Application {
 }
 ```
 Since the objects are still being created through a factory method we have encapsulation of the creation logic,
-and using the AbstractFactory class with a class registry object give us the flexability to extend the application with minimal additional overhead.
+and using the AbstractFactory class with a class registry object give us the flexibility to extend the application with minimal additional overhead.
 
 ## Conclusion
-The takeaway from this is that a factory pattern is just a means for encapsulating object creation, and that dynamic instantation is a seperate, but related concept for selecting which classes to use at runtime.
+The takeaway from this is that a factory pattern is just a means for encapsulating object creation, and that dynamic instantiation is a separate, but related concept for selecting which classes to use at runtime.
 
 To be complete, it's also worth looking at the overhead required to use these techniques.
 
@@ -408,7 +408,7 @@ To quantify the overhead of using these abstractions, we can measure how much ov
 | Pure Dependency Injection                      |                                                   3 |
 | Factory Method                                 | #Abstract Factory Methods * (#Concrete Objects + 4) |
 | Abstract Factory                               |                                                   9 |
-| Dependency Injection with Dynamic Instantation |                                                   3 |
+| Dependency Injection with Dynamic Instantiation |                                                   3 |
 | Abstract Factory with Class Registry           |                           7 (6 Factory, 1 Registry) |
 
 The techniques with the lowest overhead are the two that don't encapsulate any of the creation logic, followed by our final pattern, the Abstract Factory, and finally the plain Factory Method.
