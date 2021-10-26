@@ -23,7 +23,7 @@
 <p class=byline>Published on: <time>Oct 26, 2021</time></p>
 </header>
 <p>In object oriented programming, factory patterns are common design patterns for object creation.
-Online I&rsquo;ve found some explainations of them lacking and often confused with a different concept entirely.</p>
+Online I&rsquo;ve found some explanations of them lacking and often confused with a different concept entirely.</p>
 <p>In this post I&rsquo;m going to try and clarify the differences between these patterns and concepts and the purposes behind them.</p>
 <hr>
 <h2 id=starting-conditions>Starting Conditions</h2>
@@ -157,7 +157,7 @@ the animal object to the pet store class when it is created</p>
   <span style=color:#66d9ef>protected</span> <span style=color:#66d9ef>abstract</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>();</span>
   <span style=color:#66d9ef>protected</span> <span style=color:#66d9ef>abstract</span> Animal <span style=color:#a6e22e>getSecondAnimal</span><span style=color:#f92672>();</span>
 <span style=color:#f92672>}</span>
-</code></pre></div><p>By adding a second abstract method to the parent class we now have to change the implementation of the child classes to accomodate</p>
+</code></pre></div><p>By adding a second abstract method to the parent class we now have to change the implementation of the child classes to accommodate</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatCatPetStore</span> <span style=color:#66d9ef>extends</span> DoubleFactoryMethodPetStore <span style=color:#f92672>{</span>
   <span style=color:#a6e22e>@override</span>
   <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
@@ -249,7 +249,7 @@ the animal object to the pet store class when it is created</p>
     <span style=color:#f92672>}</span>
   <span style=color:#f92672>}</span>
 <span style=color:#f92672>}</span>
-</code></pre></div><p>But unlike when the factory method was located within the target class, we can extend the class without creating a multiplicitive amount of overhead</p>
+</code></pre></div><p>But unlike when the factory method was located within the target class, we can extend the class without creating a multiplicative amount of overhead</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java>
 <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DoublePetStore</span> <span style=color:#66d9ef>extends</span> PetStore <span style=color:#f92672>{</span>
   <span style=color:#66d9ef>private</span> Animal alsoOnSale<span style=color:#f92672>;</span>
@@ -290,7 +290,7 @@ the animal object to the pet store class when it is created</p>
 <span style=color:#f92672>}</span>
 </code></pre></div><p>Now we have been able to successfully decouple the requirements of creating the Animal objects from the PetStore class which uses them but we still have the problem of selecting which concrete factory objects to create.</p>
 <h3 id=dynamic-class-instantiation>Dynamic Class Instantiation</h3>
-<p>The ability to instantiate an object where the type name is stored in a parameter is called dynamic instantation. Programming languages such as Java and C++ don&rsquo;t support this at a syntax level so to achieve the same effect the behaviour must be implemented by hand.</p>
+<p>The ability to instantiate an object where the type name is stored in a parameter is called dynamic instantiation. Programming languages such as Java and C++ don&rsquo;t support this at a syntax level so to achieve the same effect the behaviour must be implemented by hand.</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AnimalFactory</span> <span style=color:#f92672>{</span>
   <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>String name<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
     <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>name<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
@@ -313,7 +313,7 @@ the animal object to the pet store class when it is created</p>
 </code></pre></div><p>Here we have a single factory method in the <code>AnimalFactory</code> class which takes the type of concrete Animal by name as a string parameter.
 Like in the initial example, creation of the concrete Animal objects is not delegated to an object but we have been able to achieve the effect of being able to create the concrete class by passing the type name as a string.</p>
 <h2 id=putting-it-all-together>Putting it all together</h2>
-<p>Now that we have introduced the Factory Method pattern, the Abstract Factory pattern, and the concept of Dynamic Instantation we can show how these concepts fit together to create a piece of well organized, extensible software.</p>
+<p>Now that we have introduced the Factory Method pattern, the Abstract Factory pattern, and the concept of Dynamic Instantiation we can show how these concepts fit together to create a piece of well organized, extensible software.</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#f92672>import</span> java.util.HashMap<span style=color:#f92672>;</span>
 
 <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AbstractAnimalFactory</span> <span style=color:#f92672>{</span>
@@ -358,9 +358,9 @@ Like in the initial example, creation of the concrete Animal objects is not dele
   <span style=color:#f92672>}</span>
 <span style=color:#f92672>}</span>
 </code></pre></div><p>Since the objects are still being created through a factory method we have encapsulation of the creation logic,
-and using the AbstractFactory class with a class registry object give us the flexability to extend the application with minimal additional overhead.</p>
+and using the AbstractFactory class with a class registry object give us the flexibility to extend the application with minimal additional overhead.</p>
 <h2 id=conclusion>Conclusion</h2>
-<p>The takeaway from this is that a factory pattern is just a means for encapsulating object creation, and that dynamic instantation is a seperate, but related concept for selecting which classes to use at runtime.</p>
+<p>The takeaway from this is that a factory pattern is just a means for encapsulating object creation, and that dynamic instantiation is a separate, but related concept for selecting which classes to use at runtime.</p>
 <p>To be complete, it&rsquo;s also worth looking at the overhead required to use these techniques.</p>
 <h3 id=overhead>Overhead</h3>
 <p>To quantify the overhead of using these abstractions, we can measure how much overhead there is to add an additional type of Animal.</p>
@@ -385,7 +385,7 @@ and using the AbstractFactory class with a class registry object give us the fle
 <td style=text-align:right>9</td>
 </tr>
 <tr>
-<td style=text-align:left>Dependency Injection with Dynamic Instantation</td>
+<td style=text-align:left>Dependency Injection with Dynamic Instantiation</td>
 <td style=text-align:right>3</td>
 </tr>
 <tr>
