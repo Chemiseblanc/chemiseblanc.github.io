@@ -10,7 +10,7 @@
     <meta name="theme-color" content="#ffffff">
     {{ $style := resources.Get "sass/main.scss" | resources.ExecuteAsTemplate "style.scss" . | toCSS | minify }}
     <link rel="stylesheet" type="text/css" href="{{ $style.RelPermalink }}">
-    <link rel="stylesheet" type="text/css" href="/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/icons.css">
     {{ $title := print .Site.Title " | " .Title }}
     {{ if .IsHome }}{{ $title = .Site.Title }}{{ end}}
     <title>{{ $title }}</title>

@@ -21,12 +21,12 @@ summary: |
 # these can be found here: https://fontawesome.com/v5.15/icons
 social:
 - name: Email
-  icon: fas fa-envelope-square
+  icon: icon-email
   url: mailto://matt@mgibson.ca
 - name: Github
-  icon: fab fa-github-square
+  icon: icon-github
   url: https://github.com/Chemiseblanc
 - name: Instagram
-  icon: fab fa-instagram-square
+  icon: icon-instagram
   url: https://www.instagram.com/chemiseblanc/
 
