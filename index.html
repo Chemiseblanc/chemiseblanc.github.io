@@ -131,6 +131,6 @@ something interesting from the <a href=https://themes.gohugo.io/>Hugo theme list
 </article>
 </main>
 </div>
-<script>window.onload=function(){const a=document.getElementById("scrollable");a.addEventListener("wheel",b=>{const c=b.target.closest(".card");(c==null||c.scrollHeight<=c.clientHeight)&&(b.preventDefault(),a.scrollLeft+=b.deltaY+b.deltaX)})}</script>
+<script>window.onload=function(){const a=document.getElementById("scrollable");a.addEventListener("wheel",b=>{const c=b.target.closest(".card");b.ctrlKey==!1&&(c==null||c.scrollHeight<=c.clientHeight)&&(b.preventDefault(),a.scrollLeft+=b.deltaY+b.deltaX)})}</script>
 </body>
 </html>
