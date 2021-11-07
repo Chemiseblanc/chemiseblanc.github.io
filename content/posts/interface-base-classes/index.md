@@ -1,14 +1,14 @@
 ---
-title: "Interfaces and Base Classes"
-date: 2021-11-05T10:16:17-04:00
+title: Interfaces and Base Classes
+date: 2021-11-07T19:22:15.010Z
+draft: false
 cover: media/cover.jpg
-draft: true
 tags:
-- programming
+  - programming
 ---
-I was recommended this video on youtube by ArjanCodes detailing the differences between Protocols and Abstract Base Classes in Python.
+Recently, I was recommended a video on YouTube by ArjanCodes, detailing the differences between Protocols and Abstract Base Classes in Python.
 
-While he tries to explain their differences, the problem is that for a language like Python the differences are entirely artificial.
+While he tries to contrast the two, the problem is that for a dynamically typed language like Python the differences are superficial.
 
 Here is my take on the comparison and how it transfers to a statically typed language like C++.
 <!--more-->
@@ -107,7 +107,7 @@ if __name__ == "__main__":
 ```
 Here we can see that for ```Iguana``` we get an error where the class is instantiated since it doesn't implement ```speak(self)```, but the type is compatible with the signature for ```says_what(animal: Animal)```.
 
-For ```Fish``` we see that we don't get an error instantiating it, but we get an error when passing it to the function because even though it implements the required ```speak(self)``` method, it is not a subtype of ```Animal```
+For ```Fish``` we see that we don't get an error instantiating it, but we get an error when passing it to the function because even though it implements the required ```speak(self)``` method, it is not a sub-type of ```Animal```
 
 
 ## Typing with Protocols
@@ -251,10 +251,10 @@ int main(int, char**) {
 [Run on Compiler Explorer](https://godbolt.org/z/v33rh5W8r)
 
 The problem using ADL in this fashion is that it creates a lot of duplication since it must be copied for each type.
-In general, the benefit of ADL is when you want to group similair behaviour under the same function name, but have the behaviour customized to the specific type.
+In general, the benefit of ADL is when you want to group similar behaviour under the same function name, but have the behaviour customized to the specific type.
 
 ### Generic Functions
-One techinique we can use to avoid duplicating ```says_what``` for each type is to make the function generic by using a template or auto parameter. This delegates generating each type of the function to the compiler and results in something very similair to the python code we had before we started using type annotations.
+One technique we can use to avoid duplicating ```says_what``` for each type is to make the function generic by using a template or auto parameter. This delegates generating each type of the function to the compiler and results in something very similar to the python code we had before we started using type annotations.
 
 ```c++
 #include <iostream>
@@ -326,12 +326,12 @@ We've run into the same problem we had before where we need to know what type to
 This is the real differentiating factor between using class and protocol based techniques for defining interfaces. 
 In Python, containers are heterogeneous which means they can contain differing types so using protocols versus abstract base classes is ultimately an organization difference.
 
-In C++ and other statically typed languages base classes and inheritance are necessary in order to be able to hold varing implementations of an interface in the same container or variable.
+In C++ and other statically typed languages base classes and inheritance are necessary in order to be able to hold varying implementations of an interface in the same container or variable.
 
 ### Inheritance and Virtual Methods
 To implement an interface using class inheritance in C++ it's necessary to introduce a new base class that uses the keyword ```virtual``` when defining the interface methods.
 
-The prupose of a virtual method is to allow for dispatching calls to the method ```Animal::speak()``` to the implementation of it in the correct subclass.
+The purpose of a virtual method is to allow for dispatching calls to the method ```Animal::speak()``` to the implementation of it in the correct subclass.
 
 There is also an additional requirement that the animal parameter of ```says_what``` must be either a reference ```Animal&``` or a pointer ```Animal*```. This is because the virtual dispatch can only happen when the parent type is accessed indirectly.
 ```c++
@@ -370,9 +370,9 @@ int main(int, char**) {
 ### Constraining Generics
 Now that we have covered the cases in which an interface must be defined through a base class, it's time to revisit the case of generic functions.
 
-So far we've covered scenarios analogous to the untyped and abstract base class implementations in Python.
+So far we've covered scenarios analogous to the un-typed and abstract base class implementations in Python.
 
-Remember that the key conceptual difference of protocols is that it moves from requiring A type that implements an interface, to requiring ANY type that implements an interface, that it is a superset of the constraint imposed by using an interface class.
+Remember that the key conceptual difference of protocols is that it moves from requiring A type that implements an interface, to requiring ANY type that implements an interface, that it is a super set of the constraint imposed by using an interface class.
 
 In the first case with generics we used a template or auto parameter to allow the compiler to generate unique implementations of ```says_what``` for each of our animal types, and everything functioned as expected since each type implemented the ```speak``` method as expected.
 
@@ -493,7 +493,7 @@ int main(int, char**) {
 
 Here we use the concept syntax which is new as of C++20. It's possible to achieve the same functionality in earlier standards using SFINAE but it's more difficult to use and the errors much more verbose so we will ignore this alternative here.
 
-Now if we use the Animal concept with the previous two erronious examples:
+Now if we use the Animal concept with the previous two erroneous examples:
 
 In the case where we were missing the ```speak()``` method we see that in the error message the expected return type is now included.
 ```c++
@@ -688,5 +688,5 @@ int main(int, char**) {
 [Run on Compiler Explorer](https://godbolt.org/z/44o4x6ocd)
 
 ## Other Languages
-It's worth mentioning that in languages which seperate the definition of a class's data from it's methods this behaviour can be achieved with less overhead.
+It's worth mentioning that in languages which separate the definition of a class's data from it's methods this behaviour can be achieved with less overhead.
 For example look at how [interface types](https://tour.golang.org/methods/9) are handled in golang or the ["dyn" trait syntax](https://doc.rust-lang.org/std/keyword.dyn.html) in Rust.
