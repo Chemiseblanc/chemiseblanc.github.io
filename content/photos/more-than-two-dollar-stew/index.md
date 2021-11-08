@@ -9,4 +9,5 @@ tags:
 ---
 The budget doesn’t quite hold with Canadian food prices but the taste was still worth it.
 
-Recipe: https://www.joshuaweissman.com/post/2-dollar-stew-but-cheaper
+[Recipe Link](https://www.joshuaweissman.com/post/2-dollar-stew-but-cheaper)
+<!--more-->
