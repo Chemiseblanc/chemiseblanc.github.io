@@ -1,519 +1,409 @@
-<!doctype html><html lang=en><head>
-<meta charset=utf-8>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=theme-color content="#eeeeee" media="(prefers-color-scheme: light)">
-<meta name=theme-color content="#333333" media="(prefers-color-scheme: dark)">
-<meta name=description content="In object oriented programming, factory patterns are common design patterns for object creation.
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=theme-color content="#eeeeee" media="(prefers-color-scheme: light)"><meta name=theme-color content="#333333" media="(prefers-color-scheme: dark)"><meta name=description content="In object oriented programming, factory patterns are common design patterns for object creation.
 Online I&rsquo;ve found some explanations of them lacking and often confused with a different concept entirely.
-In this post I&rsquo;m going to try and clarify the differences between these patterns and concepts and the purposes behind them.">
-<meta name=apple-mobile-web-app-capable content="yes">
-<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
-<link rel=manifest href=/site.webmanifest>
-<link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5>
-<meta name=theme-color content="#ffffff">
-<link rel=preload href=/style.min.css as=style>
-<link rel=stylesheet type=text/css href=/style.min.css>
-<link rel=preload href=/css/icons.min.css as=style>
-<link rel=stylesheet type=text/css href=/css/icons.min.css>
-<title>Matt's Homepage | Manufacturing Objects</title>
-</head><body>
-<main class="content single">
-<img class=cover src=/posts/manufacturing-objects/media/cover_hu15761ec8c5986e6451d1bcc9737c1101_9682176_800x0_resize_q75_box.jpg>
-<div class=tags>
-<a href=https://mgibson.ca/tags/programming/>#programming</a>
-</div>
-<article>
-<header>
-<h1>Manufacturing Objects</h1>
-<p class=byline>Published on: <time>Oct 26, 2021</time></p>
-</header>
-<p>In object oriented programming, factory patterns are common design patterns for object creation.
-Online I&rsquo;ve found some explanations of them lacking and often confused with a different concept entirely.</p>
-<p>In this post I&rsquo;m going to try and clarify the differences between these patterns and concepts and the purposes behind them.</p>
-<hr>
-<h2 id=starting-conditions>Starting Conditions</h2>
-<p>To start, let&rsquo;s define an abstract class which presents an interface which provides access to the common functionality of an associated set of objects</p>
-<h3 id=abstract-class>Abstract Class</h3>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Animal</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> String <span style=color:#a6e22e>makeSound</span><span style=color:#f92672>();</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Cat</span> <span style=color:#66d9ef>extends</span> Animal <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>public</span> String <span style=color:#a6e22e>makeSound</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span><span style=color:#f92672>;</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Dog</span> <span style=color:#66d9ef>extends</span> Animal <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>public</span> String <span style=color:#a6e22e>makeSound</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span><span style=color:#f92672>;</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-</code></pre></div><h3 id=something-that-uses-the-class>Something that uses the class</h3>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>PetStore</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>private</span> Animal onSale<span style=color:#f92672>;</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    System<span style=color:#f92672>.</span><span style=color:#a6e22e>out</span><span style=color:#f92672>.</span><span style=color:#a6e22e>println</span><span style=color:#f92672>(</span>onSale<span style=color:#f92672>.</span><span style=color:#a6e22e>makeSound</span><span style=color:#f92672>());</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-</code></pre></div><h3 id=goal>Goal</h3>
-<p>What we want is to get the correct concrete class of Animal to the PetStore instance in a way that can be configured by the user.</p>
-<h2 id=creation-strategies>Creation Strategies</h2>
-<h3 id=basic-implementation>Basic Implementation</h3>
-<p>Our first implementation uses the concept of dependency injection to pass
-the animal object to the pet store class when it is created</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>BasicPetStore</span> <span style=color:#66d9ef>extends</span> PetStore <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#a6e22e>PetStore</span><span style=color:#f92672>(</span>Animal animal<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    onSale <span style=color:#f92672>=</span> animal<span style=color:#f92672>;</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Application</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>main</span><span style=color:#f92672>(</span>String<span style=color:#f92672>[]</span> args<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    String typeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>1<span style=color:#f92672>];</span>
-    PetStore store<span style=color:#f92672>;</span>
-
-    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
-      store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span><span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>());</span>
-    <span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
-      store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span><span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>());</span>
-    <span style=color:#f92672>}</span>
-
-    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-</code></pre></div><p>The weakness here is that while dependency injection is a very strong pattern, with no abstraction in the actual object creation process we end up having a point where everything must be created at once.</p>
-<p>For more complex applications this point can become very large and for non-trivial initialization may end up containing logic about components that isn&rsquo;t easily visible to developers.</p>
-<p>For example:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#f92672>import</span> java.time.*<span style=color:#f92672>;</span>
-<span style=color:#f92672>...</span>
-<span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
-  LocalDate today <span style=color:#f92672>=</span> LocalDate<span style=color:#f92672>.</span><span style=color:#a6e22e>now</span><span style=color:#f92672>();</span>
-  <span style=color:#75715e>// Bylaw 1234 - Can&#39;t sell cats on Friday the 13th so sell dogs instead
-</span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfMonth</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> 13 <span style=color:#f92672>&amp;&amp;</span> today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfWeek</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> DayOfWeek<span style=color:#f92672>.</span><span style=color:#a6e22e>FRIDAY</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span><span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>());</span>
-  <span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#f92672>{</span>
-    store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span><span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>());</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
-  store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span><span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>());</span>
-<span style=color:#f92672>}</span>
-<span style=color:#f92672>...</span>
-</code></pre></div><p>While quick and easy to implement it complicates the creation logic in a way that isn&rsquo;t visible by looking at just the pet store class.</p>
-<h3 id=factory-method>Factory Method</h3>
-<p>Our first attempt at abstraction is to delegate Animal creation to a method in the PetStore class which can be overridden for different types of stores.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>FactoryMethodPetStore</span> <span style=color:#66d9ef>extends</span> PetStore <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#a6e22e>AbstractPetStore</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    onSale <span style=color:#f92672>=</span> getAnimal<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-  <span style=color:#66d9ef>protected</span> <span style=color:#66d9ef>abstract</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>();</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DogStore</span> <span style=color:#66d9ef>extends</span> FactoryMethodPetStore <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatStore</span> <span style=color:#66d9ef>extends</span> FactoryMethodPetStore <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Application</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>main</span><span style=color:#f92672>(</span>String<span style=color:#f92672>[]</span> args<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    String typeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>1<span style=color:#f92672>];</span>
-    PetStore petStore<span style=color:#f92672>;</span>
-
-    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>))</span>
-      petStore <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> CatStore<span style=color:#f92672>();</span>
-    <span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
-      petStore <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> DogStore<span style=color:#f92672>();</span>
-    <span style=color:#f92672>}</span>
-  <span style=color:#f92672>}</span>
-  petStore<span style=color:#f92672>.</span><span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>();</span>
-<span style=color:#f92672>}</span>
-</code></pre></div><p>This encapsulates the creation of each animal object meaning we only have to initialize the type of PetStore in the main application instead of the PetStore and Animal</p>
-<p>We can also extend this to support the same logic as before prohibiting the sale of cats on Friday the 13th</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#f92672>import</span> java.time.*<span style=color:#f92672>;</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatStore</span> <span style=color:#66d9ef>extends</span> FactoryMethodPetStore <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfMonth</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> 13 <span style=color:#f92672>&amp;&amp;</span> today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfWeek</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> DayOfWeek<span style=color:#f92672>.</span><span style=color:#a6e22e>FRIDAY</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
-    <span style=color:#66d9ef>else</span> <span style=color:#f92672>{</span>
-      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
-    <span style=color:#f92672>}</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-</code></pre></div><p>Unlike before this logic is now visible when inspecting the source code for the concrete class instead of being potentially hidden elsewhere.</p>
-<p>This method still isn&rsquo;t perfect because now creating the instance of Animal is tied to the instance of FactoryMethodPetStore. To see the problem with this consider what happens if we now want to sell two types of Animals.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DoubleFactoryMethodPetStore</span> <span style=color:#66d9ef>extends</span> PetStore <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>private</span> Animal alsoOnSale<span style=color:#f92672>;</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#a6e22e>FactoryMethodPetStore</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    onSale <span style=color:#f92672>=</span> getAnimal<span style=color:#f92672>();</span>
-    alsoOnSale <span style=color:#f92672>=</span> getSecondAnimal<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-  <span style=color:#66d9ef>protected</span> <span style=color:#66d9ef>abstract</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>();</span>
-  <span style=color:#66d9ef>protected</span> <span style=color:#66d9ef>abstract</span> Animal <span style=color:#a6e22e>getSecondAnimal</span><span style=color:#f92672>();</span>
-<span style=color:#f92672>}</span>
-</code></pre></div><p>By adding a second abstract method to the parent class we now have to change the implementation of the child classes to accommodate</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatCatPetStore</span> <span style=color:#66d9ef>extends</span> DoubleFactoryMethodPetStore <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getSecondAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatDogPetStore</span> <span style=color:#66d9ef>extends</span> DoubleFactoryMethodPetStore <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getSecondAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DogCatPetStore</span> <span style=color:#66d9ef>extends</span> DoubleFactoryMethodPetStore <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getSecondAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DogDogPetStore</span> <span style=color:#66d9ef>extends</span> DoubleFactoryMethodPetStore <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getSecondAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-</code></pre></div><p>This means that the overhead of having the factory method within the calling class increases for every type of animal or additional abstract method.</p>
-<h3 id=abstract-factory>Abstract Factory</h3>
-<p>We saw that delegating the creation of the Animal objects to a method was able to encapsulate the creation logic but as we extended the abstract class it created overhead since every child class had to be adapted to those changes.</p>
-<p>The Abstract Factory pattern is able to avoid this by refactoring the factory method into a dedicated abstract class which can be implemented for each type.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AbstractAnimalFactory</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>();</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DogFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Application</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>main</span><span style=color:#f92672>(</span>String<span style=color:#f92672>[]</span> args<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    PetStore store<span style=color:#f92672>;</span>
-    AbstractAnimalFactory factory<span style=color:#f92672>;</span>
-    String typeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>1<span style=color:#f92672>];</span>
-
-    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
-      factory <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> CatFactory<span style=color:#f92672>();</span>
-    <span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
-      factory <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> DogFactory<span style=color:#f92672>();</span>
-    <span style=color:#f92672>}</span>
-
-    store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span>factory<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>());</span>
-    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>();</span>
-<span style=color:#f92672>}</span>
-</code></pre></div><p>Here we can see that instead of modifying the PetStore class we can use the original one that receives the instance of Animal through dependency injection because it&rsquo;s the type of concrete factory that changes instead.</p>
-<p>This technique still allows us to encapsulate the creation logic in one place</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#f92672>import</span> java.time.*<span style=color:#f92672>;</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfMonth</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> 13 <span style=color:#f92672>&amp;&amp;</span> today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfWeek</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> DayOfWeek<span style=color:#f92672>.</span><span style=color:#a6e22e>FRIDAY</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
-    <span style=color:#66d9ef>else</span> <span style=color:#f92672>{</span>
-      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
-    <span style=color:#f92672>}</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-</code></pre></div><p>But unlike when the factory method was located within the target class, we can extend the class without creating a multiplicative amount of overhead</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java>
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DoublePetStore</span> <span style=color:#66d9ef>extends</span> PetStore <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>private</span> Animal alsoOnSale<span style=color:#f92672>;</span>
-  DoublePetStore<span style=color:#f92672>(</span>Animal first<span style=color:#f92672>,</span> Animal second<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    onSale <span style=color:#f92672>=</span> first<span style=color:#f92672>;</span>
-    alsoOnSale <span style=color:#f92672>=</span> second<span style=color:#f92672>;</span>
-  <span style=color:#f92672>}</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>useOtherAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    System<span style=color:#f92672>.</span><span style=color:#a6e22e>out</span><span style=color:#f92672>.</span><span style=color:#a6e22e>println</span><span style=color:#f92672>(</span>alsoOnSale<span style=color:#f92672>.</span><span style=color:#a6e22e>makeSound</span><span style=color:#f92672>());</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Application</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>main</span><span style=color:#f92672>(</span>String<span style=color:#f92672>[]</span> args<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    PetStore store<span style=color:#f92672>;</span>
-    AbstractAnimalFactory firstFactory<span style=color:#f92672>;</span>
-    AbstractAnimalFactory secondFactory<span style=color:#f92672>;</span>
-    String typeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>1<span style=color:#f92672>];</span>
-    String otherTypeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>2<span style=color:#f92672>];</span>
-
-    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
-      firstFactory <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> CatFactory<span style=color:#f92672>();</span>
-    <span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
-      firstFactory <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> DogFactory<span style=color:#f92672>();</span>
-    <span style=color:#f92672>}</span>
-
-    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>otherTypeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
-      secondFactory <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> CatFactory<span style=color:#f92672>();</span>
-    <span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>otherTypeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
-      secondFactory <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> DogFactory<span style=color:#f92672>();</span>
-    <span style=color:#f92672>}</span>
-
-    store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> DoublePetStore<span style=color:#f92672>(</span>firstFactory<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>(),</span> secondFactory<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>());</span>
-
-    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>();</span>
-    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useOtherAnimal</span><span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-</code></pre></div><p>Now we have been able to successfully decouple the requirements of creating the Animal objects from the PetStore class which uses them but we still have the problem of selecting which concrete factory objects to create.</p>
-<h3 id=dynamic-class-instantiation>Dynamic Class Instantiation</h3>
-<p>The ability to instantiate an object where the type name is stored in a parameter is called dynamic instantiation. Programming languages such as Java and C++ don&rsquo;t support this at a syntax level so to achieve the same effect the behaviour must be implemented by hand.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AnimalFactory</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>String name<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>name<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
-      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
-    <span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>name<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
-      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
-    <span style=color:#f92672>}</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Application</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>main</span><span style=color:#f92672>(</span>String<span style=color:#f92672>[]</span> args<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    String typeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>1<span style=color:#f92672>];</span>
-    AnimalFactory factory <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> Factory<span style=color:#f92672>;</span>
-    PetStore store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span>factory<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>));</span>
-
-    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-</code></pre></div><p>Here we have a single factory method in the <code>AnimalFactory</code> class which takes the type of concrete Animal by name as a string parameter.
-Like in the initial example, creation of the concrete Animal objects is not delegated to an object but we have been able to achieve the effect of being able to create the concrete class by passing the type name as a string.</p>
-<h2 id=putting-it-all-together>Putting it all together</h2>
-<p>Now that we have introduced the Factory Method pattern, the Abstract Factory pattern, and the concept of Dynamic Instantiation we can show how these concepts fit together to create a piece of well organized, extensible software.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#f92672>import</span> java.util.HashMap<span style=color:#f92672>;</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AbstractAnimalFactory</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>();</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AnimalRegistry</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>private</span> HashMap<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>,</span> AbstractAnimalFactory<span style=color:#f92672>&gt;</span> registry<span style=color:#f92672>;</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#a6e22e>AnimalRegistry</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    registry <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> HashMap<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>,</span> AbstractAnimalFactory<span style=color:#f92672>&gt;;</span>
-  <span style=color:#f92672>}</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>register</span><span style=color:#f92672>(</span>String name AbstractAnimalFactory factory<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    registry<span style=color:#f92672>.</span><span style=color:#a6e22e>put</span><span style=color:#f92672>(</span>name<span style=color:#f92672>,</span> factory<span style=color:#f92672>);</span>
-  <span style=color:#f92672>}</span>
-  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>String name<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> registry<span style=color:#f92672>.</span><span style=color:#a6e22e>get</span><span style=color:#f92672>(</span>name<span style=color:#f92672>).</span><span style=color:#a6e22e>create</span><span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DogFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Application</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>main</span><span style=color:#f92672>(</span>String<span style=color:#f92672>[]</span> args<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    AnimalRegistry registry <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> AnimalRegistry<span style=color:#f92672>();</span>
-    registry<span style=color:#f92672>.</span><span style=color:#a6e22e>register</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>,</span> <span style=color:#66d9ef>new</span> CatFactory<span style=color:#f92672>());</span>
-    registry<span style=color:#f92672>.</span><span style=color:#a6e22e>register</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>,</span> <span style=color:#66d9ef>new</span> DogFactory<span style=color:#f92672>());</span>
-
-    String typeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>1<span style=color:#f92672>];</span>
-    PetStore store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span>registry<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>));</span>
-
-    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-</code></pre></div><p>Since the objects are still being created through a factory method we have encapsulation of the creation logic,
-and using the AbstractFactory class with a class registry object give us the flexibility to extend the application with minimal additional overhead.</p>
-<h2 id=conclusion>Conclusion</h2>
-<p>The takeaway from this is that a factory pattern is just a means for encapsulating object creation, and that dynamic instantiation is a separate, but related concept for selecting which classes to use at runtime.</p>
-<p>To be complete, it&rsquo;s also worth looking at the overhead required to use these techniques.</p>
-<h3 id=overhead>Overhead</h3>
-<p>To quantify the overhead of using these abstractions, we can measure how much overhead there is to add an additional type of Animal.</p>
-<table>
-<thead>
-<tr>
-<th style=text-align:left>Technique</th>
-<th style=text-align:right>Lines of Overhead per Animal</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style=text-align:left>Pure Dependency Injection</td>
-<td style=text-align:right>3</td>
-</tr>
-<tr>
-<td style=text-align:left>Factory Method</td>
-<td style=text-align:right>#Abstract Factory Methods * (#Concrete Objects + 4)</td>
-</tr>
-<tr>
-<td style=text-align:left>Abstract Factory</td>
-<td style=text-align:right>9</td>
-</tr>
-<tr>
-<td style=text-align:left>Dependency Injection with Dynamic Instantiation</td>
-<td style=text-align:right>3</td>
-</tr>
-<tr>
-<td style=text-align:left>Abstract Factory with Class Registry</td>
-<td style=text-align:right>7 (6 Factory, 1 Registry)</td>
-</tr>
-</tbody>
-</table>
-<p>The techniques with the lowest overhead are the two that don&rsquo;t encapsulate any of the creation logic, followed by our final pattern, the Abstract Factory, and finally the plain Factory Method.</p>
-<p>This is to be expected since there will be overhead for any form of abstraction and one of the primary challenges when architecting software is how to manage the growth of a codebase so it stays manageable while not getting in the way of adding new functionality.
-Another challenge is being able to recognize when it is appropriate to refactor and add these abstractions for maintainability.</p>
-<p>For small code bases it doesn&rsquo;t make sense to have more code dedicated to building abstractions than the actual functionality but if you understand these patterns you&rsquo;ll be able to gracefully transition to them if or when the time comes.</p>
-<h3 id=final-code>Final Code</h3>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#f92672>import</span> java.util.HashMap<span style=color:#f92672>;</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Animal</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> String <span style=color:#a6e22e>makeSound</span><span style=color:#f92672>();</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Cat</span> <span style=color:#66d9ef>extends</span> Animal <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>public</span> String <span style=color:#a6e22e>makeSound</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span><span style=color:#f92672>;</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Dog</span> <span style=color:#66d9ef>extends</span> Animal <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>public</span> String <span style=color:#a6e22e>makeSound</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span><span style=color:#f92672>;</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Iguana</span> <span style=color:#66d9ef>extends</span> Animal <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>public</span> String <span style=color:#a6e22e>makeSound</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;What sound does an Iguana make?&#34;</span><span style=color:#f92672>;</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AbstractAnimalFactory</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>();</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AnimalRegistry</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>private</span> HashMap<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>,</span> AbstractAnimalFactory<span style=color:#f92672>&gt;</span> registry<span style=color:#f92672>;</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#a6e22e>AnimalRegistry</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    registry <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> HashMap<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>,</span> AbstractAnimalFactory<span style=color:#f92672>&gt;;</span>
-  <span style=color:#f92672>}</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>register</span><span style=color:#f92672>(</span>String name AbstractAnimalFactory factory<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    registry<span style=color:#f92672>.</span><span style=color:#a6e22e>put</span><span style=color:#f92672>(</span>name<span style=color:#f92672>,</span> factory<span style=color:#f92672>);</span>
-  <span style=color:#f92672>}</span>
-  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>String name<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> registry<span style=color:#f92672>.</span><span style=color:#a6e22e>get</span><span style=color:#f92672>(</span>name<span style=color:#f92672>).</span><span style=color:#a6e22e>create</span><span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfMonth</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> 13 <span style=color:#f92672>&amp;&amp;</span> today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfWeek</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> DayOfWeek<span style=color:#f92672>.</span><span style=color:#a6e22e>FRIDAY</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
-    <span style=color:#66d9ef>else</span> <span style=color:#f92672>{</span>
-      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
-    <span style=color:#f92672>}</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DogFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>IguanaFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
-  <span style=color:#a6e22e>@override</span>
-  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Iguana<span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>PetStore</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>private</span> Animal onSale<span style=color:#f92672>;</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    System<span style=color:#f92672>.</span><span style=color:#a6e22e>out</span><span style=color:#f92672>.</span><span style=color:#a6e22e>println</span><span style=color:#f92672>(</span>onSale<span style=color:#f92672>.</span><span style=color:#a6e22e>makeSound</span><span style=color:#f92672>());</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DoublePetStore</span> <span style=color:#66d9ef>extends</span> PetStore <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>private</span> Animal alsoOnSale<span style=color:#f92672>;</span>
-  DoublePetStore<span style=color:#f92672>(</span>Animal first<span style=color:#f92672>,</span> Animal second<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    onSale <span style=color:#f92672>=</span> first<span style=color:#f92672>;</span>
-    alsoOnSale <span style=color:#f92672>=</span> second<span style=color:#f92672>;</span>
-  <span style=color:#f92672>}</span>
-
-  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>useOtherAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
-    System<span style=color:#f92672>.</span><span style=color:#a6e22e>out</span><span style=color:#f92672>.</span><span style=color:#a6e22e>println</span><span style=color:#f92672>(</span>alsoOnSale<span style=color:#f92672>.</span><span style=color:#a6e22e>makeSound</span><span style=color:#f92672>());</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-
-<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Application</span> <span style=color:#f92672>{</span>
-  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>main</span><span style=color:#f92672>(</span>String<span style=color:#f92672>[]</span> args<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
-    AnimalRegistry registry <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> AnimalRegistry<span style=color:#f92672>();</span>
-    registry<span style=color:#f92672>.</span><span style=color:#a6e22e>register</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>,</span> <span style=color:#66d9ef>new</span> CatFactory<span style=color:#f92672>());</span>
-    registry<span style=color:#f92672>.</span><span style=color:#a6e22e>register</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>,</span> <span style=color:#66d9ef>new</span> DogFactory<span style=color:#f92672>());</span>
-    registry<span style=color:#f92672>.</span><span style=color:#a6e22e>register</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Iguana&#34;</span><span style=color:#f92672>,</span> <span style=color:#66d9ef>new</span> IguanaFactory<span style=color:#f92672>());</span>
-
-    String typeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>1<span style=color:#f92672>];</span>
-    String otherTypeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>2<span style=color:#f92672>];</span>
-    DoublePetStore store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> DoublePetStore<span style=color:#f92672>(</span>
-                                  registry<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>),</span>
-                                  registry<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>otherTypeOfStore<span style=color:#f92672>));</span>
-
-    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>();</span>
-    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useOtherAnimal</span><span style=color:#f92672>();</span>
-  <span style=color:#f92672>}</span>
-<span style=color:#f92672>}</span>
-</code></pre></div>
-<a class=section-link href=https://mgibson.ca/posts/>See more in Posts</a>
-</article>
-</main>
-</body>
-</html>
+In this post I&rsquo;m going to try and clarify the differences between these patterns and concepts and the purposes behind them."><meta name=apple-mobile-web-app-capable content="yes"><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><meta name=theme-color content="#ffffff"><link rel=preload href=/style.min.css as=style><link rel=stylesheet type=text/css href=/style.min.css><link rel=preload href=/css/icons.min.css as=style><link rel=stylesheet type=text/css href=/css/icons.min.css><title>Matt's Homepage | Manufacturing Objects</title></head><body><main class="content single"><img class=cover src=/posts/manufacturing-objects/media/cover_hu15761ec8c5986e6451d1bcc9737c1101_9682176_800x0_resize_q75_box.jpg><div class=tags><a href=https://mgibson.ca/tags/programming/>#programming</a></div><article><header><h1>Manufacturing Objects</h1><p class=byline>Published on: <time>Oct 26, 2021</time></p></header><p>In object oriented programming, factory patterns are common design patterns for object creation.
+Online I&rsquo;ve found some explanations of them lacking and often confused with a different concept entirely.</p><p>In this post I&rsquo;m going to try and clarify the differences between these patterns and concepts and the purposes behind them.</p><hr><h2 id=starting-conditions>Starting Conditions</h2><p>To start, let&rsquo;s define an abstract class which presents an interface which provides access to the common functionality of an associated set of objects</p><h3 id=abstract-class>Abstract Class</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Animal</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> String <span style=color:#a6e22e>makeSound</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Cat</span> <span style=color:#66d9ef>extends</span> Animal <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> String <span style=color:#a6e22e>makeSound</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span><span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Dog</span> <span style=color:#66d9ef>extends</span> Animal <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> String <span style=color:#a6e22e>makeSound</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span><span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><h3 id=something-that-uses-the-class>Something that uses the class</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>PetStore</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> Animal onSale<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    System<span style=color:#f92672>.</span><span style=color:#a6e22e>out</span><span style=color:#f92672>.</span><span style=color:#a6e22e>println</span><span style=color:#f92672>(</span>onSale<span style=color:#f92672>.</span><span style=color:#a6e22e>makeSound</span><span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><h3 id=goal>Goal</h3><p>What we want is to get the correct concrete class of Animal to the PetStore instance in a way that can be configured by the user.</p><h2 id=creation-strategies>Creation Strategies</h2><h3 id=basic-implementation>Basic Implementation</h3><p>Our first implementation uses the concept of dependency injection to pass
+the animal object to the pet store class when it is created</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>BasicPetStore</span> <span style=color:#66d9ef>extends</span> PetStore <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#a6e22e>PetStore</span><span style=color:#f92672>(</span>Animal animal<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    onSale <span style=color:#f92672>=</span> animal<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Application</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>main</span><span style=color:#f92672>(</span>String<span style=color:#f92672>[]</span> args<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    String typeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>1<span style=color:#f92672>];</span>
+</span></span><span style=display:flex><span>    PetStore store<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span><span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span><span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><p>The weakness here is that while dependency injection is a very strong pattern, with no abstraction in the actual object creation process we end up having a point where everything must be created at once.</p><p>For more complex applications this point can become very large and for non-trivial initialization may end up containing logic about components that isn&rsquo;t easily visible to developers.</p><p>For example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#f92672>import</span> java.time.*<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>...</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  LocalDate today <span style=color:#f92672>=</span> LocalDate<span style=color:#f92672>.</span><span style=color:#a6e22e>now</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Bylaw 1234 - Can&#39;t sell cats on Friday the 13th so sell dogs instead
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfMonth</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> 13 <span style=color:#f92672>&amp;&amp;</span> today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfWeek</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> DayOfWeek<span style=color:#f92672>.</span><span style=color:#a6e22e>FRIDAY</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span><span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span><span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span><span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>...</span>
+</span></span></code></pre></div><p>While quick and easy to implement it complicates the creation logic in a way that isn&rsquo;t visible by looking at just the pet store class.</p><h3 id=factory-method>Factory Method</h3><p>Our first attempt at abstraction is to delegate Animal creation to a method in the PetStore class which can be overridden for different types of stores.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>FactoryMethodPetStore</span> <span style=color:#66d9ef>extends</span> PetStore <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#a6e22e>AbstractPetStore</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    onSale <span style=color:#f92672>=</span> getAnimal<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> <span style=color:#66d9ef>abstract</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DogStore</span> <span style=color:#66d9ef>extends</span> FactoryMethodPetStore <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatStore</span> <span style=color:#66d9ef>extends</span> FactoryMethodPetStore <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Application</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>main</span><span style=color:#f92672>(</span>String<span style=color:#f92672>[]</span> args<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    String typeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>1<span style=color:#f92672>];</span>
+</span></span><span style=display:flex><span>    PetStore petStore<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>))</span>
+</span></span><span style=display:flex><span>      petStore <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> CatStore<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      petStore <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> DogStore<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  petStore<span style=color:#f92672>.</span><span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><p>This encapsulates the creation of each animal object meaning we only have to initialize the type of PetStore in the main application instead of the PetStore and Animal</p><p>We can also extend this to support the same logic as before prohibiting the sale of cats on Friday the 13th</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#f92672>import</span> java.time.*<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatStore</span> <span style=color:#66d9ef>extends</span> FactoryMethodPetStore <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfMonth</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> 13 <span style=color:#f92672>&amp;&amp;</span> today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfWeek</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> DayOfWeek<span style=color:#f92672>.</span><span style=color:#a6e22e>FRIDAY</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>else</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><p>Unlike before this logic is now visible when inspecting the source code for the concrete class instead of being potentially hidden elsewhere.</p><p>This method still isn&rsquo;t perfect because now creating the instance of Animal is tied to the instance of FactoryMethodPetStore. To see the problem with this consider what happens if we now want to sell two types of Animals.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DoubleFactoryMethodPetStore</span> <span style=color:#66d9ef>extends</span> PetStore <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> Animal alsoOnSale<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#a6e22e>FactoryMethodPetStore</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    onSale <span style=color:#f92672>=</span> getAnimal<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    alsoOnSale <span style=color:#f92672>=</span> getSecondAnimal<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> <span style=color:#66d9ef>abstract</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> <span style=color:#66d9ef>abstract</span> Animal <span style=color:#a6e22e>getSecondAnimal</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><p>By adding a second abstract method to the parent class we now have to change the implementation of the child classes to accommodate</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatCatPetStore</span> <span style=color:#66d9ef>extends</span> DoubleFactoryMethodPetStore <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getSecondAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatDogPetStore</span> <span style=color:#66d9ef>extends</span> DoubleFactoryMethodPetStore <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getSecondAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DogCatPetStore</span> <span style=color:#66d9ef>extends</span> DoubleFactoryMethodPetStore <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getSecondAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DogDogPetStore</span> <span style=color:#66d9ef>extends</span> DoubleFactoryMethodPetStore <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>getSecondAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><p>This means that the overhead of having the factory method within the calling class increases for every type of animal or additional abstract method.</p><h3 id=abstract-factory>Abstract Factory</h3><p>We saw that delegating the creation of the Animal objects to a method was able to encapsulate the creation logic but as we extended the abstract class it created overhead since every child class had to be adapted to those changes.</p><p>The Abstract Factory pattern is able to avoid this by refactoring the factory method into a dedicated abstract class which can be implemented for each type.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AbstractAnimalFactory</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DogFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Application</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>main</span><span style=color:#f92672>(</span>String<span style=color:#f92672>[]</span> args<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    PetStore store<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>    AbstractAnimalFactory factory<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>    String typeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>1<span style=color:#f92672>];</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      factory <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> CatFactory<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      factory <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> DogFactory<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span>factory<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span>    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><p>Here we can see that instead of modifying the PetStore class we can use the original one that receives the instance of Animal through dependency injection because it&rsquo;s the type of concrete factory that changes instead.</p><p>This technique still allows us to encapsulate the creation logic in one place</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#f92672>import</span> java.time.*<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfMonth</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> 13 <span style=color:#f92672>&amp;&amp;</span> today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfWeek</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> DayOfWeek<span style=color:#f92672>.</span><span style=color:#a6e22e>FRIDAY</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>else</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><p>But unlike when the factory method was located within the target class, we can extend the class without creating a multiplicative amount of overhead</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DoublePetStore</span> <span style=color:#66d9ef>extends</span> PetStore <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> Animal alsoOnSale<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>  DoublePetStore<span style=color:#f92672>(</span>Animal first<span style=color:#f92672>,</span> Animal second<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    onSale <span style=color:#f92672>=</span> first<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>    alsoOnSale <span style=color:#f92672>=</span> second<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>useOtherAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    System<span style=color:#f92672>.</span><span style=color:#a6e22e>out</span><span style=color:#f92672>.</span><span style=color:#a6e22e>println</span><span style=color:#f92672>(</span>alsoOnSale<span style=color:#f92672>.</span><span style=color:#a6e22e>makeSound</span><span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Application</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>main</span><span style=color:#f92672>(</span>String<span style=color:#f92672>[]</span> args<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    PetStore store<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>    AbstractAnimalFactory firstFactory<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>    AbstractAnimalFactory secondFactory<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>    String typeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>1<span style=color:#f92672>];</span>
+</span></span><span style=display:flex><span>    String otherTypeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>2<span style=color:#f92672>];</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      firstFactory <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> CatFactory<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      firstFactory <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> DogFactory<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>otherTypeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      secondFactory <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> CatFactory<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>otherTypeOfStore<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      secondFactory <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> DogFactory<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> DoublePetStore<span style=color:#f92672>(</span>firstFactory<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>(),</span> secondFactory<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useOtherAnimal</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><p>Now we have been able to successfully decouple the requirements of creating the Animal objects from the PetStore class which uses them but we still have the problem of selecting which concrete factory objects to create.</p><h3 id=dynamic-class-instantiation>Dynamic Class Instantiation</h3><p>The ability to instantiate an object where the type name is stored in a parameter is called dynamic instantiation. Programming languages such as Java and C++ don&rsquo;t support this at a syntax level so to achieve the same effect the behaviour must be implemented by hand.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AnimalFactory</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>String name<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>name<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span> <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>name<span style=color:#f92672>.</span><span style=color:#a6e22e>equals</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>))</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Application</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>main</span><span style=color:#f92672>(</span>String<span style=color:#f92672>[]</span> args<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    String typeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>1<span style=color:#f92672>];</span>
+</span></span><span style=display:flex><span>    AnimalFactory factory <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> Factory<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>    PetStore store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span>factory<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>));</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><p>Here we have a single factory method in the <code>AnimalFactory</code> class which takes the type of concrete Animal by name as a string parameter.
+Like in the initial example, creation of the concrete Animal objects is not delegated to an object but we have been able to achieve the effect of being able to create the concrete class by passing the type name as a string.</p><h2 id=putting-it-all-together>Putting it all together</h2><p>Now that we have introduced the Factory Method pattern, the Abstract Factory pattern, and the concept of Dynamic Instantiation we can show how these concepts fit together to create a piece of well organized, extensible software.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#f92672>import</span> java.util.HashMap<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AbstractAnimalFactory</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AnimalRegistry</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> HashMap<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>,</span> AbstractAnimalFactory<span style=color:#f92672>&gt;</span> registry<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#a6e22e>AnimalRegistry</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    registry <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> HashMap<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>,</span> AbstractAnimalFactory<span style=color:#f92672>&gt;;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>register</span><span style=color:#f92672>(</span>String name AbstractAnimalFactory factory<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    registry<span style=color:#f92672>.</span><span style=color:#a6e22e>put</span><span style=color:#f92672>(</span>name<span style=color:#f92672>,</span> factory<span style=color:#f92672>);</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>String name<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> registry<span style=color:#f92672>.</span><span style=color:#a6e22e>get</span><span style=color:#f92672>(</span>name<span style=color:#f92672>).</span><span style=color:#a6e22e>create</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DogFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Application</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>main</span><span style=color:#f92672>(</span>String<span style=color:#f92672>[]</span> args<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    AnimalRegistry registry <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> AnimalRegistry<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    registry<span style=color:#f92672>.</span><span style=color:#a6e22e>register</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>,</span> <span style=color:#66d9ef>new</span> CatFactory<span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span>    registry<span style=color:#f92672>.</span><span style=color:#a6e22e>register</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>,</span> <span style=color:#66d9ef>new</span> DogFactory<span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    String typeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>1<span style=color:#f92672>];</span>
+</span></span><span style=display:flex><span>    PetStore store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> BasicPetStore<span style=color:#f92672>(</span>registry<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>));</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><p>Since the objects are still being created through a factory method we have encapsulation of the creation logic,
+and using the AbstractFactory class with a class registry object give us the flexibility to extend the application with minimal additional overhead.</p><h2 id=conclusion>Conclusion</h2><p>The takeaway from this is that a factory pattern is just a means for encapsulating object creation, and that dynamic instantiation is a separate, but related concept for selecting which classes to use at runtime.</p><p>To be complete, it&rsquo;s also worth looking at the overhead required to use these techniques.</p><h3 id=overhead>Overhead</h3><p>To quantify the overhead of using these abstractions, we can measure how much overhead there is to add an additional type of Animal.</p><table><thead><tr><th style=text-align:left>Technique</th><th style=text-align:right>Lines of Overhead per Animal</th></tr></thead><tbody><tr><td style=text-align:left>Pure Dependency Injection</td><td style=text-align:right>3</td></tr><tr><td style=text-align:left>Factory Method</td><td style=text-align:right>#Abstract Factory Methods * (#Concrete Objects + 4)</td></tr><tr><td style=text-align:left>Abstract Factory</td><td style=text-align:right>9</td></tr><tr><td style=text-align:left>Dependency Injection with Dynamic Instantiation</td><td style=text-align:right>3</td></tr><tr><td style=text-align:left>Abstract Factory with Class Registry</td><td style=text-align:right>7 (6 Factory, 1 Registry)</td></tr></tbody></table><p>The techniques with the lowest overhead are the two that don&rsquo;t encapsulate any of the creation logic, followed by our final pattern, the Abstract Factory, and finally the plain Factory Method.</p><p>This is to be expected since there will be overhead for any form of abstraction and one of the primary challenges when architecting software is how to manage the growth of a codebase so it stays manageable while not getting in the way of adding new functionality.
+Another challenge is being able to recognize when it is appropriate to refactor and add these abstractions for maintainability.</p><p>For small code bases it doesn&rsquo;t make sense to have more code dedicated to building abstractions than the actual functionality but if you understand these patterns you&rsquo;ll be able to gracefully transition to them if or when the time comes.</p><h3 id=final-code>Final Code</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#f92672>import</span> java.util.HashMap<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Animal</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> String <span style=color:#a6e22e>makeSound</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Cat</span> <span style=color:#66d9ef>extends</span> Animal <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> String <span style=color:#a6e22e>makeSound</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span><span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Dog</span> <span style=color:#66d9ef>extends</span> Animal <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> String <span style=color:#a6e22e>makeSound</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span><span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Iguana</span> <span style=color:#66d9ef>extends</span> Animal <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> String <span style=color:#a6e22e>makeSound</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;What sound does an Iguana make?&#34;</span><span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AbstractAnimalFactory</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AnimalRegistry</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> HashMap<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>,</span> AbstractAnimalFactory<span style=color:#f92672>&gt;</span> registry<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#a6e22e>AnimalRegistry</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    registry <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> HashMap<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>,</span> AbstractAnimalFactory<span style=color:#f92672>&gt;;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>register</span><span style=color:#f92672>(</span>String name AbstractAnimalFactory factory<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    registry<span style=color:#f92672>.</span><span style=color:#a6e22e>put</span><span style=color:#f92672>(</span>name<span style=color:#f92672>,</span> factory<span style=color:#f92672>);</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>String name<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> registry<span style=color:#f92672>.</span><span style=color:#a6e22e>get</span><span style=color:#f92672>(</span>name<span style=color:#f92672>).</span><span style=color:#a6e22e>create</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CatFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfMonth</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> 13 <span style=color:#f92672>&amp;&amp;</span> today<span style=color:#f92672>.</span><span style=color:#a6e22e>getDayOfWeek</span><span style=color:#f92672>()</span> <span style=color:#f92672>==</span> DayOfWeek<span style=color:#f92672>.</span><span style=color:#a6e22e>FRIDAY</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>else</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Cat<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DogFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Dog<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>IguanaFactory</span> <span style=color:#66d9ef>extends</span> AbstractAnimalFactory <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>@override</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> Animal <span style=color:#a6e22e>create</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Iguana<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>PetStore</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> Animal onSale<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    System<span style=color:#f92672>.</span><span style=color:#a6e22e>out</span><span style=color:#f92672>.</span><span style=color:#a6e22e>println</span><span style=color:#f92672>(</span>onSale<span style=color:#f92672>.</span><span style=color:#a6e22e>makeSound</span><span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DoublePetStore</span> <span style=color:#66d9ef>extends</span> PetStore <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> Animal alsoOnSale<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>  DoublePetStore<span style=color:#f92672>(</span>Animal first<span style=color:#f92672>,</span> Animal second<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    onSale <span style=color:#f92672>=</span> first<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>    alsoOnSale <span style=color:#f92672>=</span> second<span style=color:#f92672>;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>useOtherAnimal</span><span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    System<span style=color:#f92672>.</span><span style=color:#a6e22e>out</span><span style=color:#f92672>.</span><span style=color:#a6e22e>println</span><span style=color:#f92672>(</span>alsoOnSale<span style=color:#f92672>.</span><span style=color:#a6e22e>makeSound</span><span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Application</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>main</span><span style=color:#f92672>(</span>String<span style=color:#f92672>[]</span> args<span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    AnimalRegistry registry <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> AnimalRegistry<span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    registry<span style=color:#f92672>.</span><span style=color:#a6e22e>register</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Cat&#34;</span><span style=color:#f92672>,</span> <span style=color:#66d9ef>new</span> CatFactory<span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span>    registry<span style=color:#f92672>.</span><span style=color:#a6e22e>register</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Dog&#34;</span><span style=color:#f92672>,</span> <span style=color:#66d9ef>new</span> DogFactory<span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span>    registry<span style=color:#f92672>.</span><span style=color:#a6e22e>register</span><span style=color:#f92672>(</span><span style=color:#e6db74>&#34;Iguana&#34;</span><span style=color:#f92672>,</span> <span style=color:#66d9ef>new</span> IguanaFactory<span style=color:#f92672>());</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    String typeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>1<span style=color:#f92672>];</span>
+</span></span><span style=display:flex><span>    String otherTypeOfStore <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>2<span style=color:#f92672>];</span>
+</span></span><span style=display:flex><span>    DoublePetStore store <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> DoublePetStore<span style=color:#f92672>(</span>
+</span></span><span style=display:flex><span>                                  registry<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>typeOfStore<span style=color:#f92672>),</span>
+</span></span><span style=display:flex><span>                                  registry<span style=color:#f92672>.</span><span style=color:#a6e22e>create</span><span style=color:#f92672>(</span>otherTypeOfStore<span style=color:#f92672>));</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useAnimal</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>    store<span style=color:#f92672>.</span><span style=color:#a6e22e>useOtherAnimal</span><span style=color:#f92672>();</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><a class=section-link href=https://mgibson.ca/posts/>See more in Posts</a></article></main></body></html>

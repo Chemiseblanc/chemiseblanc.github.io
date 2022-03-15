@@ -1,630 +1,532 @@
-<!doctype html><html lang=en><head>
-<meta charset=utf-8>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=theme-color content="#eeeeee" media="(prefers-color-scheme: light)">
-<meta name=theme-color content="#333333" media="(prefers-color-scheme: dark)">
-<meta name=description content="Recently, I was recommended a video on YouTube by ArjanCodes, detailing the differences between Protocols and Abstract Base Classes in Python.
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=theme-color content="#eeeeee" media="(prefers-color-scheme: light)"><meta name=theme-color content="#333333" media="(prefers-color-scheme: dark)"><meta name=description content="Recently, I was recommended a video on YouTube by ArjanCodes, detailing the differences between Protocols and Abstract Base Classes in Python.
 While he tries to contrast the two, the problem is that for a dynamically typed language like Python the differences are superficial.
-Here is my take on the comparison and how it transfers to a statically typed language like C++.">
-<meta name=apple-mobile-web-app-capable content="yes">
-<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
-<link rel=manifest href=/site.webmanifest>
-<link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5>
-<meta name=theme-color content="#ffffff">
-<link rel=preload href=/style.min.css as=style>
-<link rel=stylesheet type=text/css href=/style.min.css>
-<link rel=preload href=/css/icons.min.css as=style>
-<link rel=stylesheet type=text/css href=/css/icons.min.css>
-<title>Matt's Homepage | Interfaces and Base Classes</title>
-</head><body>
-<main class="content single">
-<img class=cover src=/posts/interface-base-classes/media/cover_hu2165b35684531e867f2ac0e3afc84715_1978091_800x0_resize_q75_box.jpg>
-<div class=tags>
-<a href=https://mgibson.ca/tags/programming/>#programming</a>
-</div>
-<article>
-<header>
-<h1>Interfaces and Base Classes</h1>
-<p class=byline>Published on: <time>Nov 7, 2021</time></p>
-</header>
-<p>Recently, I was recommended a video on YouTube by ArjanCodes, detailing the differences between Protocols and Abstract Base Classes in Python.</p>
-<p>While he tries to contrast the two, the problem is that for a dynamically typed language like Python the differences are superficial.</p>
-<p>Here is my take on the comparison and how it transfers to a statically typed language like C++.</p>
-<h2 id=motivation-for-static-types>Motivation for Static Types</h2>
-<p>To start from the same position as ArjanCodes, let&rsquo;s consider the differences in Python first by defining a class and some function that acts upon it.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Animal</span>:
-    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self):
-        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Hello&#34;</span>
-
-<span style=color:#66d9ef>def</span> <span style=color:#a6e22e>says_what</span>(animal):
-    print(animal<span style=color:#f92672>.</span>speak())
-</code></pre></div><p>What we want is to have multiple classes of animals with their own unique speak methods.</p>
-<p>Now Python is a dynamically typed language so we don&rsquo;t actually need to worry about types or class hierarchies to achieve this behaviour</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Dog</span>:
-    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self):
-        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>
-
-<span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Cat</span>:
-    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self):
-        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>
-
-<span style=color:#66d9ef>def</span> <span style=color:#a6e22e>says_what</span>(animal):
-    print(animal<span style=color:#f92672>.</span>speak())
-
-<span style=color:#66d9ef>if</span> __name__ <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;__main__&#34;</span>:
-    dog <span style=color:#f92672>=</span> Dog()
-    says_what(dog) <span style=color:#75715e># Prints &#34;Woof&#34;</span>
-
-    cat <span style=color:#f92672>=</span> Cat()
-    says_what(cat) <span style=color:#75715e># Prints &#34;Meow&#34;</span>
-</code></pre></div><p>The problem is that for larger projects, the lack of information regarding argument types makes things more difficult.
-If you see only the function <code>says_what(animal)</code> you have to infer the requirements of the animal parameter which is hopefully conveyed through written documentation, and that the documentation is up to date.</p>
-<p>By moving this information into type annotations, which are available as of Python 3.5+, it clarifies what the parameters are expected to be and moves the point of error in programs up the call stack to the function call site instead of where the incorrect type usage occurs.</p>
-<h2 id=typing-with-abstract-base-classes>Typing with Abstract Base Classes</h2>
-<p>The first approach to adding static types is to introduce an abstract class that is inherited by concrete types that implement the methods defined in the abstract class.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#f92672>from</span> abc <span style=color:#f92672>import</span> ABC, abstractmethod
-
-<span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Animal</span>(ABC):
-    <span style=color:#a6e22e>@abstractmethod</span>
-    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
-        <span style=color:#66d9ef>pass</span>
-
-<span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Dog</span>(Animal):
-    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
-        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>
-
-<span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Cat</span>(Animal):
-    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
-        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>
-
-<span style=color:#66d9ef>def</span> <span style=color:#a6e22e>says_what</span>(animal: Animal):
-    print(animal<span style=color:#f92672>.</span>speak())
-
-<span style=color:#66d9ef>if</span> __name__ <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;__main__&#34;</span>:
-    dog <span style=color:#f92672>=</span> Dog()
-    cat <span style=color:#f92672>=</span> Cat()
-    says_what(dog) <span style=color:#75715e># Prints &#34;Woof&#34;</span>
-    says_what(cat) <span style=color:#75715e># Prints &#34;Meow&#34;</span>
-</code></pre></div><p>The constraint this puts on the program is that now all the types must inherit from the base class and implement the abstract method. Failing to do either will introduce an error</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#f92672>from</span> abc <span style=color:#f92672>import</span> ABC, abstractmethod
-
-<span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Animal</span>(ABC):
-    <span style=color:#a6e22e>@abstractmethod</span>
-    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
-        <span style=color:#66d9ef>pass</span>
-
-<span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Iguana</span>(Animal):
-    <span style=color:#66d9ef>pass</span>
-
-<span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Fish</span>():
-    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
-        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Bloop&#34;</span>
-
-<span style=color:#66d9ef>def</span> <span style=color:#a6e22e>says_what</span>(animal: Animal):
-    print(animal<span style=color:#f92672>.</span>speak())
-
-<span style=color:#66d9ef>if</span> __name__ <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;__main__&#34;</span>:
-    iguana <span style=color:#f92672>=</span> Iguana() <span style=color:#75715e># Error, class Iguana does not implement all abstract methods of Animal</span>
-    says_what(iguana)
-
-    fish <span style=color:#f92672>=</span> Fish()
-    says_what(fish) <span style=color:#75715e># Error, fish is not of type Animal</span>
-</code></pre></div><p>Here we can see that for <code>Iguana</code> we get an error where the class is instantiated since it doesn&rsquo;t implement <code>speak(self)</code>, but the type is compatible with the signature for <code>says_what(animal: Animal)</code>.</p>
-<p>For <code>Fish</code> we see that we don&rsquo;t get an error instantiating it, but we get an error when passing it to the function because even though it implements the required <code>speak(self)</code> method, it is not a sub-type of <code>Animal</code></p>
-<h2 id=typing-with-protocols>Typing with Protocols</h2>
-<p>What protocols do is remove the requirement on inheriting a base class and conceptually change the requirements on the function signature from &ldquo;Give me an Animal&rdquo; to &ldquo;Give me something with a method speak() that returns a string&rdquo;</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#f92672>from</span> typing <span style=color:#f92672>import</span> Protocol
-
-<span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Animal</span>(Protocol):
-    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
-        <span style=color:#f92672>...</span>
-
-<span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Iguana</span>():
-    <span style=color:#66d9ef>pass</span>
-
-<span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Fish</span>():
-    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
-        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Bloop&#34;</span>
-
-<span style=color:#66d9ef>def</span> <span style=color:#a6e22e>says_what</span>(animal: Animal):
-    print(animal<span style=color:#f92672>.</span>speak())
-
-<span style=color:#66d9ef>if</span> __name__ <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;__main__&#34;</span>:
-    iguana <span style=color:#f92672>=</span> Iguana()
-    says_what(iguana) <span style=color:#75715e># Error, class Iguana doesn&#39;t implement protocol Animal</span>
-
-    fish <span style=color:#f92672>=</span> Fish()
-    says_what(fish) <span style=color:#75715e># Prints &#34;Bloop&#34;</span>
-</code></pre></div><p>The constraints placed on parameters using protocols are weaker than using base classes since it acts on the capabilities of a class instead of its inheritance hierarchy. As a matter of fact, it&rsquo;s still possible to use abstract classes with protocols since they still implement the required functionality, but not vice-versa.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#f92672>from</span> abc <span style=color:#f92672>import</span> ABC, abstractmethod
-<span style=color:#f92672>from</span> typing <span style=color:#f92672>import</span> Protocol
-
-<span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Animal</span>(Protocol):
-    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
-        <span style=color:#f92672>...</span>
-
-<span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AbstractAnimal</span>(ABC):
-    <span style=color:#a6e22e>@abstractmethod</span>
-    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
-        <span style=color:#66d9ef>pass</span>
-
-<span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Dog</span>(AbstractAnimal):
-    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
-        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>
-
-<span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Cat</span>(AbstractAnimal):
-    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
-        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>
-
-<span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Fish</span>():
-    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
-        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Bloop&#34;</span>
-
-<span style=color:#66d9ef>def</span> <span style=color:#a6e22e>says_what</span>(animal: Animal):
-    print(animal<span style=color:#f92672>.</span>speak())
-
-<span style=color:#66d9ef>if</span> __name__ <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;__main__&#34;</span>:
-    dog <span style=color:#f92672>=</span> Dog()
-    says_what(dog) <span style=color:#75715e># Prints &#34;Woof&#34;</span>
-
-    cat <span style=color:#f92672>=</span> Cat()
-    says_what(cat) <span style=color:#75715e># Prints &#34;Meow&#34;</span>
-
-    fish <span style=color:#f92672>=</span> Fish()
-    says_what(fish) <span style=color:#75715e># Prints &#34;Bloop&#34;</span>
-</code></pre></div><h2 id=comparison-to-c>Comparison to C++</h2>
-<p>Unlike Python, C++ is statically typed so the types of everything must be known at compile time.
-If we recreate the same program we immediately run into an issue.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e></span>
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Dog</span> {
-    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>; }
-};
-
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Cat</span> {
-    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>; }
-};
-
-<span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(<span style=color:#75715e>/* What goes here? */</span> animal) {
-    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
-    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
-}
-
-<span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
-    Cat cat{};
-    says_what(cat);
-
-    Dog dog{};
-    says_what(dog);
-
-    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-}
-</code></pre></div><p>For the function <code>says_what()</code> we have to specify what the type of the argument animal is.
-There are several different ways to do this, each with their own strengths and weaknesses.</p>
-<h3 id=argument-dependant-lookup-adl>Argument Dependant Lookup (ADL)</h3>
-<p>The first method is to use a feature called Argument Dependant Lookup, or ADL. What this does is that when the function <code>says_what</code> is called, the compiler will look for a version of <code>says_what</code> with a compatible type signature.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e></span>
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Dog</span> {
-    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>; }
-};
-
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Cat</span> {
-    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>; }
-};
-
-<span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(Dog animal) {
-    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
-    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
-}
-
-<span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(Cat animal) {
-    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
-    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
-}
-
-
-<span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
-    Dog dog{};
-    says_what(dog);
-
-    Cat cat{};
-    says_what(cat);
-
-    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-}
-</code></pre></div><p><a href=https://godbolt.org/z/v33rh5W8r>Run on Compiler Explorer</a></p>
-<p>The problem using ADL in this fashion is that it creates a lot of duplication since it must be copied for each type.
-In general, the benefit of ADL is when you want to group similar behaviour under the same function name, but have the behaviour customized to the specific type.</p>
-<h3 id=generic-functions>Generic Functions</h3>
-<p>One technique we can use to avoid duplicating <code>says_what</code> for each type is to make the function generic by using a template or auto parameter. This delegates generating each type of the function to the compiler and results in something very similar to the python code we had before we started using type annotations.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e></span>
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Dog</span> {
-    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>; }
-};
-
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Cat</span> {
-    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>; }
-};
-
-<span style=color:#75715e>// // Says_what using a template paramter
-</span><span style=color:#75715e>// template&lt;typename T&gt;
-</span><span style=color:#75715e>// void says_what(T animal) {
-</span><span style=color:#75715e>//     using std::cout, std::endl;
-</span><span style=color:#75715e>//     cout &lt;&lt; animal.speak() &lt;&lt; endl;
-</span><span style=color:#75715e>// }
-</span><span style=color:#75715e></span>
-<span style=color:#75715e>// Equivalent using auto
-</span><span style=color:#75715e></span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(<span style=color:#66d9ef>auto</span> animal) {
-    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
-    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
-}
-
-<span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
-    Dog dog{};
-    says_what(dog);
-
-    Cat cat{};
-    says_what(cat);
-
-    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-}
-</code></pre></div><p><a href=https://godbolt.org/z/9jnPK4vEG>Run on Compiler Explorer</a></p>
-<p>Now, to see the motivation for using class inheritance to define interfaces consider what if we want to have a container that holds on to multiple implementations of an interface.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;vector&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e></span>
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Dog</span> {
-    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>; }
-};
-
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Cat</span> {
-    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>; }
-};
-
-<span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(<span style=color:#66d9ef>auto</span> animal) {
-    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
-    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
-}
-
-<span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
-    std<span style=color:#f92672>::</span>vector<span style=color:#f92672>&lt;</span><span style=color:#75715e>/* what goes here? */</span><span style=color:#f92672>&gt;</span> animals{Dog{}, Cat{}};
-    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>auto</span><span style=color:#f92672>&amp;&amp;</span> animal : animals) {
-        says_what(animal);
-    }
-    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-}
-</code></pre></div><p>We&rsquo;ve run into the same problem we had before where we need to know what type to use. Before we overcame this by using generics to automatically generate versions of <code>says_what</code> for each type, but in this case the container has a fixed type that each interface must belong to.</p>
-<p>This is the real differentiating factor between using class and protocol based techniques for defining interfaces.
-In Python, containers are heterogeneous which means they can contain differing types so using protocols versus abstract base classes is ultimately an organization difference.</p>
-<p>In C++ and other statically typed languages base classes and inheritance are necessary in order to be able to hold varying implementations of an interface in the same container or variable.</p>
-<h3 id=inheritance-and-virtual-methods>Inheritance and Virtual Methods</h3>
-<p>To implement an interface using class inheritance in C++ it&rsquo;s necessary to introduce a new base class that uses the keyword <code>virtual</code> when defining the interface methods.</p>
-<p>The purpose of a virtual method is to allow for dispatching calls to the method <code>Animal::speak()</code> to the implementation of it in the correct subclass.</p>
-<p>There is also an additional requirement that the animal parameter of <code>says_what</code> must be either a reference <code>Animal&</code> or a pointer <code>Animal*</code>. This is because the virtual dispatch can only happen when the parent type is accessed indirectly.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e></span>
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Animal</span> {
-    <span style=color:#66d9ef>virtual</span> std<span style=color:#f92672>::</span>string speak() <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-};
-
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Dog</span> <span style=color:#f92672>:</span> Animal {
-    std<span style=color:#f92672>::</span>string speak() <span style=color:#66d9ef>override</span> { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>; }
-};
-
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Cat</span> <span style=color:#f92672>:</span> Animal {
-    std<span style=color:#f92672>::</span>string speak() <span style=color:#66d9ef>override</span> { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>; }
-};
-
-<span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(Animal<span style=color:#f92672>&amp;</span> animal) {
-    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
-    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
-}
-
-<span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
-    Dog dog{};
-    says_what(dog);
-
-    Cat cat{};
-    says_what(cat);
-
-    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-}
-</code></pre></div><p><a href=https://godbolt.org/z/PKbqMjrP1>Run on Compiler Explorer</a></p>
-<h3 id=constraining-generics>Constraining Generics</h3>
-<p>Now that we have covered the cases in which an interface must be defined through a base class, it&rsquo;s time to revisit the case of generic functions.</p>
-<p>So far we&rsquo;ve covered scenarios analogous to the un-typed and abstract base class implementations in Python.</p>
-<p>Remember that the key conceptual difference of protocols is that it moves from requiring A type that implements an interface, to requiring ANY type that implements an interface, that it is a super set of the constraint imposed by using an interface class.</p>
-<p>In the first case with generics we used a template or auto parameter to allow the compiler to generate unique implementations of <code>says_what</code> for each of our animal types, and everything functioned as expected since each type implemented the <code>speak</code> method as expected.</p>
-<p>Now, what if we were to pass a non-conforming type to the same function?</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e></span>
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Plant</span> {};
-
-<span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(<span style=color:#66d9ef>auto</span> animal) {
-    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
-    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
-}
-
-<span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
-    Plant plant{};
-    says_what(plant);
-
-    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-}
-</code></pre></div><p><a href=https://godbolt.org/z/vMh3Y1n5z>Run on Compiler Explorer</a></p>
-<p>We get an error which, depending on what compiler you&rsquo;re using, will look something like</p>
-<pre tabindex=0><code>&lt;source&gt;:8:20: error: no member named 'speak' in 'Plant'
+Here is my take on the comparison and how it transfers to a statically typed language like C++."><meta name=apple-mobile-web-app-capable content="yes"><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><meta name=theme-color content="#ffffff"><link rel=preload href=/style.min.css as=style><link rel=stylesheet type=text/css href=/style.min.css><link rel=preload href=/css/icons.min.css as=style><link rel=stylesheet type=text/css href=/css/icons.min.css><title>Matt's Homepage | Interfaces and Base Classes</title></head><body><main class="content single"><img class=cover src=/posts/interface-base-classes/media/cover_hu2165b35684531e867f2ac0e3afc84715_1978091_800x0_resize_q75_box.jpg><div class=tags><a href=https://mgibson.ca/tags/programming/>#programming</a></div><article><header><h1>Interfaces and Base Classes</h1><p class=byline>Published on: <time>Nov 7, 2021</time></p></header><p>Recently, I was recommended a video on YouTube by ArjanCodes, detailing the differences between Protocols and Abstract Base Classes in Python.</p><p>While he tries to contrast the two, the problem is that for a dynamically typed language like Python the differences are superficial.</p><p>Here is my take on the comparison and how it transfers to a statically typed language like C++.</p><h2 id=motivation-for-static-types>Motivation for Static Types</h2><p>To start from the same position as ArjanCodes, let&rsquo;s consider the differences in Python first by defining a class and some function that acts upon it.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Animal</span>:
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Hello&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>says_what</span>(animal):
+</span></span><span style=display:flex><span>    print(animal<span style=color:#f92672>.</span>speak())
+</span></span></code></pre></div><p>What we want is to have multiple classes of animals with their own unique speak methods.</p><p>Now Python is a dynamically typed language so we don&rsquo;t actually need to worry about types or class hierarchies to achieve this behaviour</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Dog</span>:
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Cat</span>:
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>says_what</span>(animal):
+</span></span><span style=display:flex><span>    print(animal<span style=color:#f92672>.</span>speak())
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> __name__ <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;__main__&#34;</span>:
+</span></span><span style=display:flex><span>    dog <span style=color:#f92672>=</span> Dog()
+</span></span><span style=display:flex><span>    says_what(dog) <span style=color:#75715e># Prints &#34;Woof&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    cat <span style=color:#f92672>=</span> Cat()
+</span></span><span style=display:flex><span>    says_what(cat) <span style=color:#75715e># Prints &#34;Meow&#34;</span>
+</span></span></code></pre></div><p>The problem is that for larger projects, the lack of information regarding argument types makes things more difficult.
+If you see only the function <code>says_what(animal)</code> you have to infer the requirements of the animal parameter which is hopefully conveyed through written documentation, and that the documentation is up to date.</p><p>By moving this information into type annotations, which are available as of Python 3.5+, it clarifies what the parameters are expected to be and moves the point of error in programs up the call stack to the function call site instead of where the incorrect type usage occurs.</p><h2 id=typing-with-abstract-base-classes>Typing with Abstract Base Classes</h2><p>The first approach to adding static types is to introduce an abstract class that is inherited by concrete types that implement the methods defined in the abstract class.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#f92672>from</span> abc <span style=color:#f92672>import</span> ABC, abstractmethod
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Animal</span>(ABC):
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@abstractmethod</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>pass</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Dog</span>(Animal):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Cat</span>(Animal):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>says_what</span>(animal: Animal):
+</span></span><span style=display:flex><span>    print(animal<span style=color:#f92672>.</span>speak())
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> __name__ <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;__main__&#34;</span>:
+</span></span><span style=display:flex><span>    dog <span style=color:#f92672>=</span> Dog()
+</span></span><span style=display:flex><span>    cat <span style=color:#f92672>=</span> Cat()
+</span></span><span style=display:flex><span>    says_what(dog) <span style=color:#75715e># Prints &#34;Woof&#34;</span>
+</span></span><span style=display:flex><span>    says_what(cat) <span style=color:#75715e># Prints &#34;Meow&#34;</span>
+</span></span></code></pre></div><p>The constraint this puts on the program is that now all the types must inherit from the base class and implement the abstract method. Failing to do either will introduce an error</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#f92672>from</span> abc <span style=color:#f92672>import</span> ABC, abstractmethod
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Animal</span>(ABC):
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@abstractmethod</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>pass</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Iguana</span>(Animal):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>pass</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Fish</span>():
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Bloop&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>says_what</span>(animal: Animal):
+</span></span><span style=display:flex><span>    print(animal<span style=color:#f92672>.</span>speak())
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> __name__ <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;__main__&#34;</span>:
+</span></span><span style=display:flex><span>    iguana <span style=color:#f92672>=</span> Iguana() <span style=color:#75715e># Error, class Iguana does not implement all abstract methods of Animal</span>
+</span></span><span style=display:flex><span>    says_what(iguana)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    fish <span style=color:#f92672>=</span> Fish()
+</span></span><span style=display:flex><span>    says_what(fish) <span style=color:#75715e># Error, fish is not of type Animal</span>
+</span></span></code></pre></div><p>Here we can see that for <code>Iguana</code> we get an error where the class is instantiated since it doesn&rsquo;t implement <code>speak(self)</code>, but the type is compatible with the signature for <code>says_what(animal: Animal)</code>.</p><p>For <code>Fish</code> we see that we don&rsquo;t get an error instantiating it, but we get an error when passing it to the function because even though it implements the required <code>speak(self)</code> method, it is not a sub-type of <code>Animal</code></p><h2 id=typing-with-protocols>Typing with Protocols</h2><p>What protocols do is remove the requirement on inheriting a base class and conceptually change the requirements on the function signature from &ldquo;Give me an Animal&rdquo; to &ldquo;Give me something with a method speak() that returns a string&rdquo;</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#f92672>from</span> typing <span style=color:#f92672>import</span> Protocol
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Animal</span>(Protocol):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>...</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Iguana</span>():
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>pass</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Fish</span>():
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Bloop&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>says_what</span>(animal: Animal):
+</span></span><span style=display:flex><span>    print(animal<span style=color:#f92672>.</span>speak())
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> __name__ <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;__main__&#34;</span>:
+</span></span><span style=display:flex><span>    iguana <span style=color:#f92672>=</span> Iguana()
+</span></span><span style=display:flex><span>    says_what(iguana) <span style=color:#75715e># Error, class Iguana doesn&#39;t implement protocol Animal</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    fish <span style=color:#f92672>=</span> Fish()
+</span></span><span style=display:flex><span>    says_what(fish) <span style=color:#75715e># Prints &#34;Bloop&#34;</span>
+</span></span></code></pre></div><p>The constraints placed on parameters using protocols are weaker than using base classes since it acts on the capabilities of a class instead of its inheritance hierarchy. As a matter of fact, it&rsquo;s still possible to use abstract classes with protocols since they still implement the required functionality, but not vice-versa.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#f92672>from</span> abc <span style=color:#f92672>import</span> ABC, abstractmethod
+</span></span><span style=display:flex><span><span style=color:#f92672>from</span> typing <span style=color:#f92672>import</span> Protocol
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Animal</span>(Protocol):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>...</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AbstractAnimal</span>(ABC):
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@abstractmethod</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>pass</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Dog</span>(AbstractAnimal):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Cat</span>(AbstractAnimal):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Fish</span>():
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>speak</span>(self) <span style=color:#f92672>-&gt;</span> str:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Bloop&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>says_what</span>(animal: Animal):
+</span></span><span style=display:flex><span>    print(animal<span style=color:#f92672>.</span>speak())
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> __name__ <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;__main__&#34;</span>:
+</span></span><span style=display:flex><span>    dog <span style=color:#f92672>=</span> Dog()
+</span></span><span style=display:flex><span>    says_what(dog) <span style=color:#75715e># Prints &#34;Woof&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    cat <span style=color:#f92672>=</span> Cat()
+</span></span><span style=display:flex><span>    says_what(cat) <span style=color:#75715e># Prints &#34;Meow&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    fish <span style=color:#f92672>=</span> Fish()
+</span></span><span style=display:flex><span>    says_what(fish) <span style=color:#75715e># Prints &#34;Bloop&#34;</span>
+</span></span></code></pre></div><h2 id=comparison-to-c>Comparison to C++</h2><p>Unlike Python, C++ is statically typed so the types of everything must be known at compile time.
+If we recreate the same program we immediately run into an issue.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Dog</span> {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>; }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Cat</span> {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>; }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(<span style=color:#75715e>/* What goes here? */</span> animal) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
+</span></span><span style=display:flex><span>    Cat cat{};
+</span></span><span style=display:flex><span>    says_what(cat);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    Dog dog{};
+</span></span><span style=display:flex><span>    says_what(dog);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>For the function <code>says_what()</code> we have to specify what the type of the argument animal is.
+There are several different ways to do this, each with their own strengths and weaknesses.</p><h3 id=argument-dependant-lookup-adl>Argument Dependant Lookup (ADL)</h3><p>The first method is to use a feature called Argument Dependant Lookup, or ADL. What this does is that when the function <code>says_what</code> is called, the compiler will look for a version of <code>says_what</code> with a compatible type signature.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Dog</span> {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>; }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Cat</span> {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>; }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(Dog animal) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(Cat animal) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
+</span></span><span style=display:flex><span>    Dog dog{};
+</span></span><span style=display:flex><span>    says_what(dog);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    Cat cat{};
+</span></span><span style=display:flex><span>    says_what(cat);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><a href=https://godbolt.org/z/v33rh5W8r>Run on Compiler Explorer</a></p><p>The problem using ADL in this fashion is that it creates a lot of duplication since it must be copied for each type.
+In general, the benefit of ADL is when you want to group similar behaviour under the same function name, but have the behaviour customized to the specific type.</p><h3 id=generic-functions>Generic Functions</h3><p>One technique we can use to avoid duplicating <code>says_what</code> for each type is to make the function generic by using a template or auto parameter. This delegates generating each type of the function to the compiler and results in something very similar to the python code we had before we started using type annotations.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Dog</span> {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>; }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Cat</span> {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>; }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// // Says_what using a template paramter
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// template&lt;typename T&gt;
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// void says_what(T animal) {
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//     using std::cout, std::endl;
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//     cout &lt;&lt; animal.speak() &lt;&lt; endl;
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// }
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Equivalent using auto
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(<span style=color:#66d9ef>auto</span> animal) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
+</span></span><span style=display:flex><span>    Dog dog{};
+</span></span><span style=display:flex><span>    says_what(dog);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    Cat cat{};
+</span></span><span style=display:flex><span>    says_what(cat);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><a href=https://godbolt.org/z/9jnPK4vEG>Run on Compiler Explorer</a></p><p>Now, to see the motivation for using class inheritance to define interfaces consider what if we want to have a container that holds on to multiple implementations of an interface.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;vector&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Dog</span> {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>; }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Cat</span> {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>; }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(<span style=color:#66d9ef>auto</span> animal) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>vector<span style=color:#f92672>&lt;</span><span style=color:#75715e>/* what goes here? */</span><span style=color:#f92672>&gt;</span> animals{Dog{}, Cat{}};
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>auto</span><span style=color:#f92672>&amp;&amp;</span> animal : animals) {
+</span></span><span style=display:flex><span>        says_what(animal);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>We&rsquo;ve run into the same problem we had before where we need to know what type to use. Before we overcame this by using generics to automatically generate versions of <code>says_what</code> for each type, but in this case the container has a fixed type that each interface must belong to.</p><p>This is the real differentiating factor between using class and protocol based techniques for defining interfaces.
+In Python, containers are heterogeneous which means they can contain differing types so using protocols versus abstract base classes is ultimately an organization difference.</p><p>In C++ and other statically typed languages base classes and inheritance are necessary in order to be able to hold varying implementations of an interface in the same container or variable.</p><h3 id=inheritance-and-virtual-methods>Inheritance and Virtual Methods</h3><p>To implement an interface using class inheritance in C++ it&rsquo;s necessary to introduce a new base class that uses the keyword <code>virtual</code> when defining the interface methods.</p><p>The purpose of a virtual method is to allow for dispatching calls to the method <code>Animal::speak()</code> to the implementation of it in the correct subclass.</p><p>There is also an additional requirement that the animal parameter of <code>says_what</code> must be either a reference <code>Animal&</code> or a pointer <code>Animal*</code>. This is because the virtual dispatch can only happen when the parent type is accessed indirectly.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Animal</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>virtual</span> std<span style=color:#f92672>::</span>string speak() <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Dog</span> <span style=color:#f92672>:</span> Animal {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>string speak() <span style=color:#66d9ef>override</span> { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>; }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Cat</span> <span style=color:#f92672>:</span> Animal {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>string speak() <span style=color:#66d9ef>override</span> { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>; }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(Animal<span style=color:#f92672>&amp;</span> animal) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
+</span></span><span style=display:flex><span>    Dog dog{};
+</span></span><span style=display:flex><span>    says_what(dog);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    Cat cat{};
+</span></span><span style=display:flex><span>    says_what(cat);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><a href=https://godbolt.org/z/PKbqMjrP1>Run on Compiler Explorer</a></p><h3 id=constraining-generics>Constraining Generics</h3><p>Now that we have covered the cases in which an interface must be defined through a base class, it&rsquo;s time to revisit the case of generic functions.</p><p>So far we&rsquo;ve covered scenarios analogous to the un-typed and abstract base class implementations in Python.</p><p>Remember that the key conceptual difference of protocols is that it moves from requiring A type that implements an interface, to requiring ANY type that implements an interface, that it is a super set of the constraint imposed by using an interface class.</p><p>In the first case with generics we used a template or auto parameter to allow the compiler to generate unique implementations of <code>says_what</code> for each of our animal types, and everything functioned as expected since each type implemented the <code>speak</code> method as expected.</p><p>Now, what if we were to pass a non-conforming type to the same function?</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Plant</span> {};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(<span style=color:#66d9ef>auto</span> animal) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
+</span></span><span style=display:flex><span>    Plant plant{};
+</span></span><span style=display:flex><span>    says_what(plant);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><a href=https://godbolt.org/z/vMh3Y1n5z>Run on Compiler Explorer</a></p><p>We get an error which, depending on what compiler you&rsquo;re using, will look something like</p><pre tabindex=0><code>&lt;source&gt;:8:20: error: no member named &#39;speak&#39; in &#39;Plant&#39;
     cout &lt;&lt; animal.speak() &lt;&lt; endl;
             ~~~~~~ ^
-&lt;source&gt;:13:5: note: in instantiation of function template specialization 'says_what&lt;Plant&gt;' requested here
+&lt;source&gt;:13:5: note: in instantiation of function template specialization &#39;says_what&lt;Plant&gt;&#39; requested here
     says_what(plant);
     ^
 1 error generated.
 ASM generation compiler returned: 1
-&lt;source&gt;:8:20: error: no member named 'speak' in 'Plant'
+&lt;source&gt;:8:20: error: no member named &#39;speak&#39; in &#39;Plant&#39;
     cout &lt;&lt; animal.speak() &lt;&lt; endl;
             ~~~~~~ ^
-&lt;source&gt;:13:5: note: in instantiation of function template specialization 'says_what&lt;Plant&gt;' requested here
+&lt;source&gt;:13:5: note: in instantiation of function template specialization &#39;says_what&lt;Plant&gt;&#39; requested here
     says_what(plant);
     ^
 1 error generated.
 Execution build compiler returned: 1
-</code></pre><p>Looking at the error, we can see the problem is that we&rsquo;re missing the <code>speak()</code> method.</p>
-<p>We already know that the expected interface is that we need a speak method which returns a string, but if you look closely you&rsquo;ll realize that while the error mentions the speak method, it says nothing about the expected return type.</p>
-<p>If we had no knowledge of the interface and only the error message it&rsquo;s possible to fix this error and still not satisfy the expected interface.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e></span>
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Plant</span> {
-    <span style=color:#66d9ef>int</span> <span style=color:#a6e22e>speak</span>() {<span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;}
-};
-
-<span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(<span style=color:#66d9ef>auto</span> animal) {
-    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
-    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
-}
-
-<span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
-    Plant plant{};
-    says_what(plant);
-
-    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-}
-</code></pre></div><p><a href=https://godbolt.org/z/E9q9avKq9>Run on Compiler Explorer</a></p>
-<p>In a more complex program where the interface may be used in several places this would either cause silent, incorrect behaviour or would set of a chain of other errors which we would have to resolve until we are hopefully able to deduce what the correct interface is.</p>
-<p>A much better way to prevent this from happening in the first place is to come up with a constraint on our generic type which describes the required capabilities, serving the same purpose as a protocol does for types in Python.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;concepts&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e></span>
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Dog</span> {
-    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>; }
-};
-
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Cat</span> {
-    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>; }
-};
-
-<span style=color:#75715e>// C++20 Concept
-</span><span style=color:#75715e></span><span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span> T<span style=color:#f92672>&gt;</span>
-<span style=color:#66d9ef>concept</span> Animal <span style=color:#f92672>=</span> <span style=color:#66d9ef>requires</span>(T a) {
-    {a.speak()} <span style=color:#f92672>-&gt;</span> std<span style=color:#f92672>::</span>convertible_to<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>string<span style=color:#f92672>&gt;</span>;
-};
-
-<span style=color:#75715e>// // Using a Constrained Template parameter
-</span><span style=color:#75715e>// template&lt;Animal T&gt;
-</span><span style=color:#75715e>// void says_what(T&amp; animal) {
-</span><span style=color:#75715e>//     using std::cout, std::endl;
-</span><span style=color:#75715e>//     cout &lt;&lt; animal.speak() &lt;&lt; endl;
-</span><span style=color:#75715e>// }
-</span><span style=color:#75715e></span>
-<span style=color:#75715e>// Equivalent with a constrained auto paramter
-</span><span style=color:#75715e></span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(Animal <span style=color:#66d9ef>auto</span><span style=color:#f92672>&amp;</span> animal) {
-    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
-    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
-}
-
-<span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
-    Dog dog{};
-    says_what(dog);
-
-    Cat cat{};
-    says_what(cat);
-
-    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-}
-</code></pre></div><p><a href=https://godbolt.org/z/Y4sKqrnYh>Run on Compiler Explorer</a></p>
-<p>Here we use the concept syntax which is new as of C++20. It&rsquo;s possible to achieve the same functionality in earlier standards using SFINAE but it&rsquo;s more difficult to use and the errors much more verbose so we will ignore this alternative here.</p>
-<p>Now if we use the Animal concept with the previous two erroneous examples:</p>
-<p>In the case where we were missing the <code>speak()</code> method we see that in the error message the expected return type is now included.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;concepts&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e></span>
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Plant</span> {};
-
-<span style=color:#75715e>// C++20 Concept
-</span><span style=color:#75715e></span><span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span> T<span style=color:#f92672>&gt;</span>
-<span style=color:#66d9ef>concept</span> Animal <span style=color:#f92672>=</span> <span style=color:#66d9ef>requires</span>(T a) {
-    {a.speak()} <span style=color:#f92672>-&gt;</span> std<span style=color:#f92672>::</span>convertible_to<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>string<span style=color:#f92672>&gt;</span>;
-};
-
-<span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(Animal <span style=color:#66d9ef>auto</span> animal) {
-    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
-    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
-}
-
-<span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
-    Plant plant{};
-    says_what(plant);
-
-    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-}
-</code></pre></div><pre tabindex=0><code>&lt;source&gt;:21:5: error: no matching function for call to 'says_what'
+</code></pre><p>Looking at the error, we can see the problem is that we&rsquo;re missing the <code>speak()</code> method.</p><p>We already know that the expected interface is that we need a speak method which returns a string, but if you look closely you&rsquo;ll realize that while the error mentions the speak method, it says nothing about the expected return type.</p><p>If we had no knowledge of the interface and only the error message it&rsquo;s possible to fix this error and still not satisfy the expected interface.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Plant</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int</span> <span style=color:#a6e22e>speak</span>() {<span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;}
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(<span style=color:#66d9ef>auto</span> animal) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
+</span></span><span style=display:flex><span>    Plant plant{};
+</span></span><span style=display:flex><span>    says_what(plant);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><a href=https://godbolt.org/z/E9q9avKq9>Run on Compiler Explorer</a></p><p>In a more complex program where the interface may be used in several places this would either cause silent, incorrect behaviour or would set of a chain of other errors which we would have to resolve until we are hopefully able to deduce what the correct interface is.</p><p>A much better way to prevent this from happening in the first place is to come up with a constraint on our generic type which describes the required capabilities, serving the same purpose as a protocol does for types in Python.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;concepts&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Dog</span> {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>; }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Cat</span> {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>; }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// C++20 Concept
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span> T<span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>concept</span> Animal <span style=color:#f92672>=</span> <span style=color:#66d9ef>requires</span>(T a) {
+</span></span><span style=display:flex><span>    {a.speak()} <span style=color:#f92672>-&gt;</span> std<span style=color:#f92672>::</span>convertible_to<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>string<span style=color:#f92672>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// // Using a Constrained Template parameter
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// template&lt;Animal T&gt;
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// void says_what(T&amp; animal) {
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//     using std::cout, std::endl;
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//     cout &lt;&lt; animal.speak() &lt;&lt; endl;
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// }
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Equivalent with a constrained auto paramter
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(Animal <span style=color:#66d9ef>auto</span><span style=color:#f92672>&amp;</span> animal) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
+</span></span><span style=display:flex><span>    Dog dog{};
+</span></span><span style=display:flex><span>    says_what(dog);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    Cat cat{};
+</span></span><span style=display:flex><span>    says_what(cat);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><a href=https://godbolt.org/z/Y4sKqrnYh>Run on Compiler Explorer</a></p><p>Here we use the concept syntax which is new as of C++20. It&rsquo;s possible to achieve the same functionality in earlier standards using SFINAE but it&rsquo;s more difficult to use and the errors much more verbose so we will ignore this alternative here.</p><p>Now if we use the Animal concept with the previous two erroneous examples:</p><p>In the case where we were missing the <code>speak()</code> method we see that in the error message the expected return type is now included.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;concepts&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Plant</span> {};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// C++20 Concept
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span> T<span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>concept</span> Animal <span style=color:#f92672>=</span> <span style=color:#66d9ef>requires</span>(T a) {
+</span></span><span style=display:flex><span>    {a.speak()} <span style=color:#f92672>-&gt;</span> std<span style=color:#f92672>::</span>convertible_to<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>string<span style=color:#f92672>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(Animal <span style=color:#66d9ef>auto</span> animal) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
+</span></span><span style=display:flex><span>    Plant plant{};
+</span></span><span style=display:flex><span>    says_what(plant);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><pre tabindex=0><code>&lt;source&gt;:21:5: error: no matching function for call to &#39;says_what&#39;
     says_what(plant);
     ^~~~~~~~~
 &lt;source&gt;:14:6: note: candidate template ignored: constraints not satisfied [with animal:auto = Plant]
 void says_what(Animal auto animal) {
      ^
-&lt;source&gt;:14:16: note: because 'Plant' does not satisfy 'Animal'
+&lt;source&gt;:14:16: note: because &#39;Plant&#39; does not satisfy &#39;Animal&#39;
 void says_what(Animal auto animal) {
                ^
-&lt;source&gt;:11:8: note: because 'a.speak()' would be invalid: no member named 'speak' in 'Plant'
+&lt;source&gt;:11:8: note: because &#39;a.speak()&#39; would be invalid: no member named &#39;speak&#39; in &#39;Plant&#39;
     {a.speak()} -&gt; std::convertible_to&lt;std::string&gt;;
        ^
 1 error generated.
 ASM generation compiler returned: 1
-</code></pre><p><a href=https://godbolt.org/z/aMj71M6W4>Run on Compiler Explorer</a></p>
-<p>And in the case where we implemented the correct method with the incorrect type the error includes details that the return type should be convertible to a string.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;concepts&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e></span>
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Plant</span> {
-    <span style=color:#66d9ef>int</span> <span style=color:#a6e22e>speak</span>() { <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>; }
-};
-
-<span style=color:#75715e>// C++20 Concept
-</span><span style=color:#75715e></span><span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span> T<span style=color:#f92672>&gt;</span>
-<span style=color:#66d9ef>concept</span> Animal <span style=color:#f92672>=</span> <span style=color:#66d9ef>requires</span>(T a) {
-    {a.speak()} <span style=color:#f92672>-&gt;</span> std<span style=color:#f92672>::</span>convertible_to<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>string<span style=color:#f92672>&gt;</span>;
-};
-
-<span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(Animal <span style=color:#66d9ef>auto</span> animal) {
-    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
-    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
-}
-
-<span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
-    Plant plant{};
-    says_what(plant);
-
-    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-}
-</code></pre></div><pre tabindex=0><code>&lt;source&gt;:22:5: error: no matching function for call to 'says_what'
+</code></pre><p><a href=https://godbolt.org/z/aMj71M6W4>Run on Compiler Explorer</a></p><p>And in the case where we implemented the correct method with the incorrect type the error includes details that the return type should be convertible to a string.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;concepts&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Plant</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int</span> <span style=color:#a6e22e>speak</span>() { <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>; }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// C++20 Concept
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span> T<span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>concept</span> Animal <span style=color:#f92672>=</span> <span style=color:#66d9ef>requires</span>(T a) {
+</span></span><span style=display:flex><span>    {a.speak()} <span style=color:#f92672>-&gt;</span> std<span style=color:#f92672>::</span>convertible_to<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>string<span style=color:#f92672>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(Animal <span style=color:#66d9ef>auto</span> animal) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
+</span></span><span style=display:flex><span>    Plant plant{};
+</span></span><span style=display:flex><span>    says_what(plant);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><pre tabindex=0><code>&lt;source&gt;:22:5: error: no matching function for call to &#39;says_what&#39;
     says_what(plant);
     ^~~~~~~~~
 &lt;source&gt;:15:6: note: candidate template ignored: constraints not satisfied [with animal:auto = Plant]
 void says_what(Animal auto animal) {
      ^
-&lt;source&gt;:15:16: note: because 'Plant' does not satisfy 'Animal'
+&lt;source&gt;:15:16: note: because &#39;Plant&#39; does not satisfy &#39;Animal&#39;
 void says_what(Animal auto animal) {
                ^
-&lt;source&gt;:12:25: note: because type constraint 'std::convertible_to&lt;int, std::string&gt;' was not satisfied:
+&lt;source&gt;:12:25: note: because type constraint &#39;std::convertible_to&lt;int, std::string&gt;&#39; was not satisfied:
     {a.speak()} -&gt; std::convertible_to&lt;std::string&gt;;
                         ^
-/opt/compiler-explorer/gcc-11.2.0/lib/gcc/x86_64-linux-gnu/11.2.0/../../../../include/c++/11.2.0/concepts:72:30: note: because 'is_convertible_v&lt;int, std::basic_string&lt;char&gt; &gt;' evaluated to false
+/opt/compiler-explorer/gcc-11.2.0/lib/gcc/x86_64-linux-gnu/11.2.0/../../../../include/c++/11.2.0/concepts:72:30: note: because &#39;is_convertible_v&lt;int, std::basic_string&lt;char&gt; &gt;&#39; evaluated to false
     concept convertible_to = is_convertible_v&lt;_From, _To&gt;
                              ^
 1 error generated.
 ASM generation compiler returned: 1
-</code></pre><p><a href=https://godbolt.org/z/e63M8s59P>Run on Compiler Explorer</a></p>
-<h2 id=bridging-the-gap-in-c>Bridging the Gap in C++</h2>
-<p>One of the biggest strengths and weaknesses of C++ is the level of control it gives you.</p>
-<p>As I mentioned before the real difference between protocols and abstract base classes is that in a statically typed language, if you want to have a container holding multiple implementations of a common interface they must all inherit from a base class that defines the interface.</p>
-<p>However, using the C++ template system it&rsquo;s possible to automatically generate these child classes in a hierarchy from different types that implement the correct interface.</p>
-<p>I won&rsquo;t go into the details of how this works and the implementation has some rough corners, but this is a functional demo of how we can use some of the more advanced capabilities of C++ to add in features that aren&rsquo;t present in the core language in a manner which is transparent to the end user.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;concepts&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;memory&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;type_traits&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;utility&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;vector&gt;</span><span style=color:#75715e>
-</span><span style=color:#75715e></span>
-<span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span> T<span style=color:#f92672>&gt;</span>
-<span style=color:#66d9ef>concept</span> Animal <span style=color:#f92672>=</span> <span style=color:#66d9ef>requires</span>(T a) {
-    {a.speak()} <span style=color:#f92672>-&gt;</span> std<span style=color:#f92672>::</span>convertible_to<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>string<span style=color:#f92672>&gt;</span>;
-};
-
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>dynAnimalImplBase</span> {
-    <span style=color:#66d9ef>virtual</span> <span style=color:#f92672>~</span>dynAnimalImplBase(){}
-    <span style=color:#66d9ef>virtual</span> std<span style=color:#f92672>::</span>unique_ptr<span style=color:#f92672>&lt;</span>dynAnimalImplBase<span style=color:#f92672>&gt;</span> clone() <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-    <span style=color:#75715e>// Interface Methods
-</span><span style=color:#75715e></span>    <span style=color:#66d9ef>virtual</span> std<span style=color:#f92672>::</span>string speak() <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-};
-
-<span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span>Animal T, <span style=color:#66d9ef>typename</span> Base <span style=color:#f92672>=</span> std<span style=color:#f92672>::</span>remove_cvref_t<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;&gt;</span>
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>dynAnimalImpl</span> <span style=color:#f92672>:</span> dynAnimalImplBase, Base {
-    <span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span>... Ts<span style=color:#f92672>&gt;</span>
-    dynAnimalImpl(Ts... args) <span style=color:#f92672>:</span> Base{std<span style=color:#f92672>::</span>forward<span style=color:#f92672>&lt;</span>Ts<span style=color:#f92672>&gt;</span>(args)...} {}
-
-    std<span style=color:#f92672>::</span>unique_ptr<span style=color:#f92672>&lt;</span>dynAnimalImplBase<span style=color:#f92672>&gt;</span> clone() <span style=color:#66d9ef>override</span> {
-        <span style=color:#66d9ef>return</span> std<span style=color:#f92672>::</span>make_unique<span style=color:#f92672>&lt;</span>dynAnimalImpl<span style=color:#f92672>&gt;</span>(<span style=color:#66d9ef>static_cast</span><span style=color:#f92672>&lt;</span>Base<span style=color:#f92672>&gt;</span>(<span style=color:#f92672>*</span><span style=color:#66d9ef>this</span>));
-    }
-
-    <span style=color:#75715e>// Interface Methods
-</span><span style=color:#75715e></span>    std<span style=color:#f92672>::</span>string speak() <span style=color:#66d9ef>override</span> { <span style=color:#66d9ef>return</span> Base<span style=color:#f92672>::</span>speak(); }
-};
-
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>dynAnimal</span> {
-    std<span style=color:#f92672>::</span>unique_ptr<span style=color:#f92672>&lt;</span>dynAnimalImplBase<span style=color:#f92672>&gt;</span> ptr;
-
-    <span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span>Animal T<span style=color:#f92672>&gt;</span>
-    dynAnimal(<span style=color:#66d9ef>const</span> T<span style=color:#f92672>&amp;</span> t) <span style=color:#f92672>:</span> ptr{std<span style=color:#f92672>::</span>make_unique<span style=color:#f92672>&lt;</span>dynAnimalImpl<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;&gt;</span>(t)} {}
-    <span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span>Animal T<span style=color:#f92672>&gt;</span>
-    dynAnimal(T<span style=color:#f92672>&amp;&amp;</span> t) <span style=color:#f92672>:</span> ptr{std<span style=color:#f92672>::</span>make_unique<span style=color:#f92672>&lt;</span>dynAnimalImpl<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;&gt;</span>(t)} {}
-
-    dynAnimal(<span style=color:#66d9ef>const</span> dynAnimal<span style=color:#f92672>&amp;</span> other) <span style=color:#f92672>:</span> ptr{other.ptr<span style=color:#f92672>-&gt;</span>clone()} {}
-    dynAnimal(dynAnimal<span style=color:#f92672>&amp;&amp;</span>) <span style=color:#f92672>=</span> <span style=color:#66d9ef>default</span>;
-    dynAnimal<span style=color:#f92672>&amp;</span> <span style=color:#66d9ef>operator</span><span style=color:#f92672>=</span>(<span style=color:#66d9ef>const</span> dynAnimal<span style=color:#f92672>&amp;</span> other) {
-        ptr <span style=color:#f92672>=</span> other.ptr<span style=color:#f92672>-&gt;</span>clone();
-        <span style=color:#66d9ef>return</span> <span style=color:#f92672>*</span><span style=color:#66d9ef>this</span>;
-    }
-    dynAnimal<span style=color:#f92672>&amp;</span> <span style=color:#66d9ef>operator</span><span style=color:#f92672>=</span>(dynAnimal<span style=color:#f92672>&amp;&amp;</span> other) {
-        ptr <span style=color:#f92672>=</span> std<span style=color:#f92672>::</span>exchange(other.ptr, <span style=color:#66d9ef>nullptr</span>);
-        <span style=color:#66d9ef>return</span> <span style=color:#f92672>*</span><span style=color:#66d9ef>this</span>;
-    }
-
-    <span style=color:#75715e>// Interface methods
-</span><span style=color:#75715e></span>    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> ptr<span style=color:#f92672>-&gt;</span>speak();}
-};
-
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Dog</span> {
-    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>; }
-};
-
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Cat</span> {
-    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>; }
-};
-
-<span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(Animal <span style=color:#66d9ef>auto</span><span style=color:#f92672>&amp;</span> animal) {
-    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
-    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
-}
-
-<span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
-    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>vector;
-
-    Dog dog{};
-    says_what(dog);
-
-    Cat cat{};
-    says_what(cat);
-
-    vector<span style=color:#f92672>&lt;</span>dynAnimal<span style=color:#f92672>&gt;</span> animals{Dog{}, Cat{}};
-    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>auto</span><span style=color:#f92672>&amp;&amp;</span> animal : animals) {
-        says_what(animal);
-    }
-    
-    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-}
-</code></pre></div><p><a href=https://godbolt.org/z/44o4x6ocd>Run on Compiler Explorer</a></p>
-<h2 id=other-languages>Other Languages</h2>
-<p>It&rsquo;s worth mentioning that in languages which separate the definition of a class&rsquo;s data from it&rsquo;s methods this behaviour can be achieved with less overhead.
-For example look at how <a href=https://tour.golang.org/methods/9>interface types</a> are handled in golang or the <a href=https://doc.rust-lang.org/std/keyword.dyn.html>&ldquo;dyn&rdquo; trait syntax</a> in Rust.</p>
-<a class=section-link href=https://mgibson.ca/posts/>See more in Posts</a>
-</article>
-</main>
-</body>
-</html>
+</code></pre><p><a href=https://godbolt.org/z/e63M8s59P>Run on Compiler Explorer</a></p><h2 id=bridging-the-gap-in-c>Bridging the Gap in C++</h2><p>One of the biggest strengths and weaknesses of C++ is the level of control it gives you.</p><p>As I mentioned before the real difference between protocols and abstract base classes is that in a statically typed language, if you want to have a container holding multiple implementations of a common interface they must all inherit from a base class that defines the interface.</p><p>However, using the C++ template system it&rsquo;s possible to automatically generate these child classes in a hierarchy from different types that implement the correct interface.</p><p>I won&rsquo;t go into the details of how this works and the implementation has some rough corners, but this is a functional demo of how we can use some of the more advanced capabilities of C++ to add in features that aren&rsquo;t present in the core language in a manner which is transparent to the end user.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;concepts&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;memory&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;type_traits&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;utility&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;vector&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span> T<span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>concept</span> Animal <span style=color:#f92672>=</span> <span style=color:#66d9ef>requires</span>(T a) {
+</span></span><span style=display:flex><span>    {a.speak()} <span style=color:#f92672>-&gt;</span> std<span style=color:#f92672>::</span>convertible_to<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>string<span style=color:#f92672>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>dynAnimalImplBase</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>virtual</span> <span style=color:#f92672>~</span>dynAnimalImplBase(){}
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>virtual</span> std<span style=color:#f92672>::</span>unique_ptr<span style=color:#f92672>&lt;</span>dynAnimalImplBase<span style=color:#f92672>&gt;</span> clone() <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Interface Methods
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>virtual</span> std<span style=color:#f92672>::</span>string speak() <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span>Animal T, <span style=color:#66d9ef>typename</span> Base <span style=color:#f92672>=</span> std<span style=color:#f92672>::</span>remove_cvref_t<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>dynAnimalImpl</span> <span style=color:#f92672>:</span> dynAnimalImplBase, Base {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span>... Ts<span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>    dynAnimalImpl(Ts... args) <span style=color:#f92672>:</span> Base{std<span style=color:#f92672>::</span>forward<span style=color:#f92672>&lt;</span>Ts<span style=color:#f92672>&gt;</span>(args)...} {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>unique_ptr<span style=color:#f92672>&lt;</span>dynAnimalImplBase<span style=color:#f92672>&gt;</span> clone() <span style=color:#66d9ef>override</span> {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> std<span style=color:#f92672>::</span>make_unique<span style=color:#f92672>&lt;</span>dynAnimalImpl<span style=color:#f92672>&gt;</span>(<span style=color:#66d9ef>static_cast</span><span style=color:#f92672>&lt;</span>Base<span style=color:#f92672>&gt;</span>(<span style=color:#f92672>*</span><span style=color:#66d9ef>this</span>));
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Interface Methods
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    std<span style=color:#f92672>::</span>string speak() <span style=color:#66d9ef>override</span> { <span style=color:#66d9ef>return</span> Base<span style=color:#f92672>::</span>speak(); }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>dynAnimal</span> {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>unique_ptr<span style=color:#f92672>&lt;</span>dynAnimalImplBase<span style=color:#f92672>&gt;</span> ptr;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span>Animal T<span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>    dynAnimal(<span style=color:#66d9ef>const</span> T<span style=color:#f92672>&amp;</span> t) <span style=color:#f92672>:</span> ptr{std<span style=color:#f92672>::</span>make_unique<span style=color:#f92672>&lt;</span>dynAnimalImpl<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;&gt;</span>(t)} {}
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span>Animal T<span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>    dynAnimal(T<span style=color:#f92672>&amp;&amp;</span> t) <span style=color:#f92672>:</span> ptr{std<span style=color:#f92672>::</span>make_unique<span style=color:#f92672>&lt;</span>dynAnimalImpl<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;&gt;</span>(t)} {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    dynAnimal(<span style=color:#66d9ef>const</span> dynAnimal<span style=color:#f92672>&amp;</span> other) <span style=color:#f92672>:</span> ptr{other.ptr<span style=color:#f92672>-&gt;</span>clone()} {}
+</span></span><span style=display:flex><span>    dynAnimal(dynAnimal<span style=color:#f92672>&amp;&amp;</span>) <span style=color:#f92672>=</span> <span style=color:#66d9ef>default</span>;
+</span></span><span style=display:flex><span>    dynAnimal<span style=color:#f92672>&amp;</span> <span style=color:#66d9ef>operator</span><span style=color:#f92672>=</span>(<span style=color:#66d9ef>const</span> dynAnimal<span style=color:#f92672>&amp;</span> other) {
+</span></span><span style=display:flex><span>        ptr <span style=color:#f92672>=</span> other.ptr<span style=color:#f92672>-&gt;</span>clone();
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#f92672>*</span><span style=color:#66d9ef>this</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    dynAnimal<span style=color:#f92672>&amp;</span> <span style=color:#66d9ef>operator</span><span style=color:#f92672>=</span>(dynAnimal<span style=color:#f92672>&amp;&amp;</span> other) {
+</span></span><span style=display:flex><span>        ptr <span style=color:#f92672>=</span> std<span style=color:#f92672>::</span>exchange(other.ptr, <span style=color:#66d9ef>nullptr</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#f92672>*</span><span style=color:#66d9ef>this</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Interface methods
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> ptr<span style=color:#f92672>-&gt;</span>speak();}
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Dog</span> {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Woof&#34;</span>; }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Cat</span> {
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>string speak() { <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Meow&#34;</span>; }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>says_what</span>(Animal <span style=color:#66d9ef>auto</span><span style=color:#f92672>&amp;</span> animal) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>cout, std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    cout <span style=color:#f92672>&lt;&lt;</span> animal.speak() <span style=color:#f92672>&lt;&lt;</span> endl;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>char</span><span style=color:#f92672>**</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>using</span> std<span style=color:#f92672>::</span>vector;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    Dog dog{};
+</span></span><span style=display:flex><span>    says_what(dog);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    Cat cat{};
+</span></span><span style=display:flex><span>    says_what(cat);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    vector<span style=color:#f92672>&lt;</span>dynAnimal<span style=color:#f92672>&gt;</span> animals{Dog{}, Cat{}};
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>auto</span><span style=color:#f92672>&amp;&amp;</span> animal : animals) {
+</span></span><span style=display:flex><span>        says_what(animal);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><a href=https://godbolt.org/z/44o4x6ocd>Run on Compiler Explorer</a></p><h2 id=other-languages>Other Languages</h2><p>It&rsquo;s worth mentioning that in languages which separate the definition of a class&rsquo;s data from it&rsquo;s methods this behaviour can be achieved with less overhead.
+For example look at how <a href=https://tour.golang.org/methods/9>interface types</a> are handled in golang or the <a href=https://doc.rust-lang.org/std/keyword.dyn.html>&ldquo;dyn&rdquo; trait syntax</a> in Rust.</p><a class=section-link href=https://mgibson.ca/posts/>See more in Posts</a></article></main></body></html>
