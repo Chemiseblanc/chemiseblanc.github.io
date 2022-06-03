@@ -3,7 +3,7 @@ title: About "Good Code"
 date: 2022-06-03T16:43:49.584Z
 draft: false
 longform: true
-cover: https://images.unsplash.com/photo-1652704437210-792492445cfb?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2231&q=80
+cover: media/opollo-photography-dgkm-iiq8lu-unsplash.jpg
 ---
 One of the best ways I’ve found to gauge your experience level in software is to consider the size of work that you can accomplish while still maintaining the level of quality you consider “good code”.
 
