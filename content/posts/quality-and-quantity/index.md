@@ -1,7 +1,7 @@
 ---
 title: Quality and Quantity
 date: 2022-02-01T04:07:25.021Z
-draft: false
+draft: true
 longform: true
 cover: media/john-schnobrich-flpc9_vocj4-unsplash.jpg
 ---
