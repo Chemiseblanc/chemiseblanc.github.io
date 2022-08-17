@@ -1,7 +1,7 @@
 ---
 title: About "Good Code"
 date: 2022-06-03T16:43:49.584Z
-draft: false
+draft: true
 longform: true
 cover: media/opollo-photography-dgkm-iiq8lu-unsplash.jpg
 ---
