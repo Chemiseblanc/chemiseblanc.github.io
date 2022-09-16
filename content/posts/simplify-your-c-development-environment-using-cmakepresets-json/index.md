@@ -1,7 +1,7 @@
 ---
 title: Simplify your C++ development environment using CMakePresets.json
 date: 2022-09-16T13:49:10.019Z
-draft: true
+draft: false
 longform: true
 tags:
   - c++
