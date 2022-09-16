@@ -7,8 +7,6 @@ tags:
   - c++
   - cmake
 ---
-
-
 CMake is a cross-platform utility that abstracts your C++ projects across a wide array of operating systems, compiler toolchains, and build tools. While supported by popular editors such as Visual Studio, VSCode, and CLion, there hasn’t been any way to specify build variants and toolchain options in a cross-editor fashion.
 
 Build variants is the  collection of the all the different ways your project can be built. This includes Debug/Release builds, builds with various compile-time options enabled or disabled, and builds with different compiler toolchains, whether that be for Windows, Mac, Linux, Mobile, or Embedded platforms.
@@ -21,15 +19,14 @@ You can use CMake presets by creating a file named CMakePresets.json in your pro
 
 ```json
 {
-  “version”: 2
-  “cmakeMinimumRequired”: {
-    “major”: 3,
-    “minor”: 20,
-    “patch”: 0
-  },
-  “configurePresets”: [
-    ...
-  ]
+  "version": 2,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+    },
+  "configurePresets": [
+    ]
 }
 ```
 
@@ -39,20 +36,20 @@ To define a preset within the *configurePresets* array we create a json object w
 
 ```json
 {
-  “name”: “preset-name”,
-  “displayName”: “Pretty name for editor GUI”,
-  “description”: “Tooltip for editor”,
-  “generator”: “Name of build system to generate for, argument to -G flag of cmake command”,
-  “binaryDir”: “build directory, can use ${sourceDir} to specify it as relative to project root directory”,
-  “cacheVariables”: {
-     “CACHE_VAR1”: “equivalent to -DCACHE_VAR1=”,
-     “CACHE_VAR2”: {
-        “type”: “STRING”,
-        “value”: “equivalent to -DCACHE_VAR2:STRING=”
+  "name": "preset-name",
+  "displayName": "Pretty name for editor GUI",
+  "description": "Tooltip for editor",
+  "generator": "Name of build system to generate for, argument to -G flag of cmake command",
+  "binaryDir": "build directory, can use ${sourceDir} to specify it as relative to project root directory",
+  "cacheVariables": {
+     "CACHE_VAR1": "equivalent to -DCACHE_VAR1=",
+     "CACHE_VAR2": {
+        "type": "STRING",
+        "value": "equivalent to -DCACHE_VAR2:STRING="
      }
   },
-  “environment”: {
-     “ENV_VAR1”: “same format as the cache variable entries”
+  "environment": {
+     "ENV_VAR1": "same format as the cache variable entries"
   }
 }  
 ```
