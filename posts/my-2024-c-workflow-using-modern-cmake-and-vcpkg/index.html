@@ -1,0 +1,165 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=theme-color content="#eeeeee" media="(prefers-color-scheme: light)"><meta name=theme-color content="#333333" media="(prefers-color-scheme: dark)"><meta name=description content="Setting up and maintaining a C++ development environment has always been more difficult than for newer languages, especially once third party dependencies are involved, but in the last few years the ecosystem has improved to the point where it&rsquo;s possible to create a project that can bootstrap a cross-platform development environment just by opening it with an editor that supports cmake or with a single command in the terminal."><meta name=apple-mobile-web-app-capable content="yes"><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><meta name=theme-color content="#ffffff"><link rel=preload href=/style.min.css as=style><link rel=stylesheet type=text/css href=/style.min.css><link rel=preload href=/css/icons.min.css as=style><link rel=stylesheet type=text/css href=/css/icons.min.css><title>Matt's Homepage | My 2024 C++ workflow using Modern CMake and Vcpkg</title></head><body><main class="content single"><div class=tags><a href=https://mgibson.ca/tags/c++/>#C++</a>
+<a href=https://mgibson.ca/tags/cmake/>#Cmake</a>
+<a href=https://mgibson.ca/tags/vcpkg/>#Vcpkg</a></div><article><header><h1>My 2024 C++ workflow using Modern CMake and Vcpkg</h1><p class=byline>Published on: <time>May 9, 2024</time></p></header><p>Setting up and maintaining a C++ development environment has always been more
+difficult than for newer languages, especially once third party dependencies
+are involved, but in the last few years
+the ecosystem has improved to the point where it&rsquo;s possible to create a project
+that can bootstrap a cross-platform development environment just by opening it
+with an editor that supports cmake or with a single command in the terminal.</p><p>Vcpkg is an open source dependency management tool developed by microsoft that
+integrates into cmake so you can have project-local dependencies detected by the
+find_package utility. The recommended usage is to add a git submodule to your
+project that points at a release tag of vcpkg and then when configuring cmake,
+usind the define CMAKE_TOOLCHAIN_FILE to point to the vcpkg.cmake toolchain.
+Some of the weak points I have encountered when following this are:</p><ul><li>Whenever you clone your repo you need to remember to initialize the submodule
+which isn&rsquo;t always done automatically by some IDEs</li><li>If you are already using a custom toolchain file you need to remember to
+set VCPKG_CHAINLOAD_TOOLCHAIN.</li><li>If you want to specify which dependencies should be built as shared or static
+libraries you need to create a custom toolchain file which then complicates
+the former.</li></ul><p>I still haven&rsquo;t found a good solution to the last problem but for the first two
+I developed a small cmake script <a href=https://github.com/Chemiseblanc/cmake-utils>FetchVcpkg.cmake</a> which when called at the
+beginning of the root CMakeLists.txt fetches or updates vcpkg at configure time.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cmake data-lang=cmake><span style=display:flex><span><span style=color:#75715e># Assuming FetchVcpkg.cmake has been placed in ${PROJECT_ROOT_DIR}/cmake
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>cmake_minimum_required(<span style=color:#e6db74>...</span>)<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>list(<span style=color:#e6db74>APPEND</span> <span style=color:#e6db74>CMAKE_MODULE_PATH</span> <span style=color:#f92672>${</span>CMAKE_CURRENT_SOURCE_DIR<span style=color:#f92672>}</span><span style=color:#e6db74>/cmake</span>)<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>include(<span style=color:#e6db74>FetchVcpkg</span>)<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>fetch_vcpkg(<span style=color:#e6db74>TAG</span> <span style=color:#e6db74>2023.11.20</span>)<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>project(<span style=color:#e6db74>...</span>)<span style=color:#960050;background-color:#1e0010>
+</span></span></span></code></pre></div><p>There has previously been discussion about problems with using CMake&rsquo;s
+FetchContent to manage Vcpkg which I believe I have solved in this script.
+It&rsquo;s also designed to automatically propagate any toolchain
+that has been specified by CMAKE_TOOLCHAIN_FILE so it can be used in a drop-in
+manner compatible with any existing automation.</p><p>Using this tool by itself is usually enough to get development started and ease
+third party dependency management but once you need to handle build variants
+or want to automate testing and deployment you can end up in the situation
+of handwriting shell or CI scripts. Enter CMakePresets.json.</p><p>CMake presets are a relativley new way to take the parameters given to cmake
+and encode them in a json file that acts as a single source of truth for
+developers, IDEs, and CI/CD systems. Presets are broken up into components
+that can be passed as a <code>--preset=</code> argument to the various cmake
+sub-commands. Currently presets can be specified for configuration, building,
+testing, packaging, and workflow presets which are used to specify tasks
+composed of the previous steps.</p><p>Here&rsquo;s an example CMakePresets.json from one of my projects.</p><pre tabindex=0><code class=language-json data-lang="json">    &#34;version&#34;: 6,
+    &#34;cmakeMinimumRequired&#34;: {
+        &#34;major&#34;: 3,
+        &#34;minor&#34;: 25,
+        &#34;patch&#34;: 0
+    },
+    &#34;configurePresets&#34;: [
+        {
+            &#34;hidden&#34;: true,
+            &#34;name&#34;: &#34;default&#34;,
+            &#34;displayName&#34;: &#34;Default&#34;,
+            &#34;binaryDir&#34;: &#34;${sourceDir}/artifacts/build/${presetName}&#34;,
+            &#34;installDir&#34;: &#34;${sourceDir}/artifacts/install/${presetName}&#34;,
+            &#34;cacheVariables&#34;: {
+                &#34;FETCH_VCPKG_DIR&#34;: &#34;${sourceDir}/artifacts/vcpkg&#34;,
+                &#34;VCPKG_INSTALL_OPTIONS&#34;: &#34;--x-abi-tools-use-exact-versions;--clean-after-build&#34;
+            }
+        },
+        {
+            &#34;inherits&#34;: &#34;default&#34;,
+            &#34;name&#34;: &#34;devel&#34;,
+            &#34;displayName&#34;: &#34;Development&#34;,
+            &#34;cacheVariables&#34;: {
+                &#34;CMAKE_BUILD_TYPE&#34;: &#34;Debug&#34;,
+                &#34;BUILD_TESTING&#34;: true
+            }
+        },
+        {
+            &#34;inherits&#34;: &#34;default&#34;,
+            &#34;name&#34;: &#34;release&#34;,
+            &#34;displayName&#34;: &#34;Release&#34;,
+            &#34;cacheVariables&#34;: {
+                &#34;CMAKE_BUILD_TYPE&#34;: &#34;Release&#34;,
+                &#34;BUILD_TESTING&#34;: false
+            }
+        }
+    ],
+    &#34;buildPresets&#34;: [
+        {
+            &#34;name&#34;: &#34;debug&#34;,
+            &#34;displayName&#34;: &#34;Debug&#34;,
+            &#34;configurePreset&#34;: &#34;devel&#34;,
+            &#34;configuration&#34;: &#34;Debug&#34;,
+            &#34;targets&#34;: [&#34;ALL_BUILD&#34;]
+        },
+        {
+            &#34;name&#34;: &#34;release&#34;,
+            &#34;displayName&#34;: &#34;Release&#34;,
+            &#34;configurePreset&#34;: &#34;default&#34;,
+            &#34;configuration&#34;: &#34;Release&#34;,
+            &#34;targets&#34;: [&#34;ALL_BUILD&#34;]
+        }
+    ],
+    &#34;testPresets&#34;: [
+        {
+            &#34;name&#34;: &#34;default&#34;,
+            &#34;displayName&#34;: &#34;Default&#34;,
+            &#34;configurePreset&#34;: &#34;debug&#34;,
+            &#34;configuration&#34;: &#34;Debug&#34;
+        }
+    ],
+    &#34;packagePresets&#34;: [
+        {
+            &#34;name&#34;: &#34;default&#34;,
+            &#34;displayName&#34;: &#34;Default&#34;,
+            &#34;configurePreset&#34;: &#34;release&#34;,
+            &#34;configurations&#34;: [&#34;Release&#34;],
+            &#34;generators&#34;: [&#34;ZIP&#34;],
+            &#34;packageDirectory&#34;: &#34;${sourceDir}/artifacts&#34;
+        }
+    ],
+    &#34;workflowPresets&#34;: [
+        {
+            &#34;name&#34;: &#34;ci&#34;,
+            &#34;displayName&#34;: &#34;Continuous Integration&#34;,
+            &#34;steps&#34;: [
+                { &#34;type&#34;: &#34;configure&#34;, &#34;name&#34;: &#34;devel&#34; },
+                { &#34;type&#34;: &#34;build&#34;, &#34;name&#34;: &#34;debug&#34; },
+                { &#34;type&#34;: &#34;test&#34;, &#34;name&#34;: &#34;default&#34; }
+            ]
+        },
+        {
+            &#34;name&#34;: &#34;package&#34;,
+            &#34;displayName&#34;: &#34;Package Release&#34;,
+            &#34;steps&#34;: [
+                { &#34;type&#34;: &#34;configure&#34;, &#34;name&#34;: &#34;release&#34; },
+                { &#34;type&#34;: &#34;build&#34;, &#34;name&#34;: &#34;release&#34; },
+                { &#34;type&#34;: &#34;package&#34;, &#34;name&#34;: &#34;default&#34; }
+            ]
+        }
+    ]
+}
+</code></pre><p>There are a few conventions I&rsquo;ve found useful when defining presets.</p><ul><li><p>The first is using a hidden base configure preset to define the common
+shared options like build and install directories or options to be passed
+to vcpkg.</p></li><li><p>The next is placing the build, install, and vcpkg directories into a
+artifacts folder. This is essentially the same as the <code>out/</code> folder which is
+used by default in visual studio and simplifies <code>.gitignore</code> or similar files.</p></li><li><p>And the last is naming the build and install directories after the current
+preset so it&rsquo;s possible to build and test different variants without
+overwriting anything.</p></li></ul><p>Using this setup provides as close to a zero-configuration environment
+for new developers as I&rsquo;ve presently been able to achieve and it also
+simplifies CI/CD stages into single <code>cmake --workflow --preset=</code> command.</p><p>While this is a massive improvement over what was possible even five years ago
+there are still a few areas where there&rsquo;s room for improvement.</p><p>CMake 3.24 introduced support for dependency providers. They allow for
+intercepting calls to find_package through an api. I&rsquo;d like to see if it would
+be possible to develop a system based on dependency providers that uses the
+find_package definitions as the source of dependency information instead of
+an external manifest file.</p><p>I&rsquo;d also like to see a tool for managing compilers and build tools in a
+declarative fashion. It appears there has been some work done on this front
+with vcpkg artifacts but it seems like development has stalled with only
+a small number of embedded environments supported.</p><p>The default behaviour of vcpkg is for all dependencies to be built as either
+a shared or static library. Finer grained control of this is possible by
+writing a custom toolchain file that specifies the linkage type for specific
+libraries but there should be an easier way to manage this.
+For example, I generally prefer to use statically linked libraries since it
+allows for link-time optimization and keeps the install manifest tidy.
+However, if I&rsquo;m writing a plugin-based or multi binary application it&rsquo;s good
+to have the common functionality in a shared library.
+Alternatively, if I&rsquo;m relying on a lgpl licensed dependency I could be required
+to link to it dynamically to remain license compliant. In either situation
+I still want to gain the benefits of static libraries where possible so
+building these libraries to be linked statically with their transient
+dependencies is preferable.</p><p>To conclude, using vcpkg with cmake presets makes it possible to manage your
+dependencies and configure your development environment in a declarative
+fashion. There are still a few weak areas but it&rsquo;s possible to work around most
+of the pain points in a clear fashion. Overall, the ecosystem is in a much
+better place than it was even a few years ago and I&rsquo;m looking forward to see
+it&rsquo;s continued evolution.</p><a class=section-link href=https://mgibson.ca/posts/>See more in Posts</a></article></main></body></html>
