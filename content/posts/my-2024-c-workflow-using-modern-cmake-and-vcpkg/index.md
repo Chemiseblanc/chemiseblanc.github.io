@@ -56,7 +56,7 @@ third party dependency management but once you need to handle build variants
 or want to automate testing and deployment you can end up in the situation
 of handwriting shell or CI scripts. Enter CMakePresets.json.
 
-CMake presets are a relativley new way to take the parameters given to cmake
+CMake presets are a relatively new way to take the parameters given to cmake
 and encode them in a json file that acts as a single source of truth for 
 developers, IDEs, and CI/CD systems. Presets are broken up into components
 that can be passed as a `--preset=` argument to the various cmake 
@@ -204,14 +204,14 @@ a small number of embedded environments supported.
 
 
 
-The default behaviour of vcpkg is for all dependencies to be built as either
+The default behavior of vcpkg is for all dependencies to be built as either
 a shared or static library. Finer grained control of this is possible by 
 writing a custom toolchain file that specifies the linkage type for specific 
 libraries but there should be an easier way to manage this. For example, I generally prefer to use statically linked libraries since it 
 allows for link-time optimization and keeps the install manifest tidy.
 However, if I'm writing a plugin-based or multi binary application it's good
 to have the common functionality in a shared library.
-Alternatively, if I'm relying on a lgpl licensed dependency I could be required
+Alternatively, if I'm relying on a LGPL licensed dependency I could be required
 to link to it dynamically to remain license compliant. In either situation 
 I still want to gain the benefits of static libraries where possible so 
 building these libraries to be linked statically with their transient 
