@@ -31,7 +31,7 @@ that has been specified by CMAKE_TOOLCHAIN_FILE so it can be used in a drop-in
 manner compatible with any existing automation.</p><p>Using this tool by itself is usually enough to get development started and ease
 third party dependency management but once you need to handle build variants
 or want to automate testing and deployment you can end up in the situation
-of handwriting shell or CI scripts. Enter CMakePresets.json.</p><p>CMake presets are a relativley new way to take the parameters given to cmake
+of handwriting shell or CI scripts. Enter CMakePresets.json.</p><p>CMake presets are a relatively new way to take the parameters given to cmake
 and encode them in a json file that acts as a single source of truth for
 developers, IDEs, and CI/CD systems. Presets are broken up into components
 that can be passed as a <code>--preset=</code> argument to the various cmake
@@ -145,7 +145,7 @@ find_package definitions as the source of dependency information instead of
 an external manifest file.</p><p>I&rsquo;d also like to see a tool for managing compilers and build tools in a
 declarative fashion. It appears there has been some work done on this front
 with vcpkg artifacts but it seems like development has stalled with only
-a small number of embedded environments supported.</p><p>The default behaviour of vcpkg is for all dependencies to be built as either
+a small number of embedded environments supported.</p><p>The default behavior of vcpkg is for all dependencies to be built as either
 a shared or static library. Finer grained control of this is possible by
 writing a custom toolchain file that specifies the linkage type for specific
 libraries but there should be an easier way to manage this.
@@ -153,7 +153,7 @@ For example, I generally prefer to use statically linked libraries since it
 allows for link-time optimization and keeps the install manifest tidy.
 However, if I&rsquo;m writing a plugin-based or multi binary application it&rsquo;s good
 to have the common functionality in a shared library.
-Alternatively, if I&rsquo;m relying on a lgpl licensed dependency I could be required
+Alternatively, if I&rsquo;m relying on a LGPL licensed dependency I could be required
 to link to it dynamically to remain license compliant. In either situation
 I still want to gain the benefits of static libraries where possible so
 building these libraries to be linked statically with their transient
