@@ -5,12 +5,12 @@ profile: profile/profile.jpg
 name: Matt Gibson
 location: Ottawa, ON
 employment:
-- name: Goldak Technologies
-  title: Software Developer
-  url: https://goldaktec.com
-- name: Carleton University
-  title: PhD Candidate
-  url: https://carleton.ca
+  - name: Goldak Technologies
+    title: Software Developer
+    url: https://goldaktec.com
+  - name: Carleton University
+    title: PhD Candidate
+    url: https://carleton.ca
 summary: |
   I specialize in high performance C++/CUDA in the field of computational science and engineering.
 
@@ -20,13 +20,15 @@ summary: |
 # For the icon parameter use the css class names for font awesome
 # these can be found here: https://fontawesome.com/v5.15/icons
 social:
-- name: Email
-  icon: icon-email
-  url: mailto://matt@mgibson.ca
-- name: Github
-  icon: icon-github
-  url: https://github.com/Chemiseblanc
-- name: Instagram
-  icon: icon-instagram
-  url: https://www.instagram.com/chemiseblanc/
-
+  - name: Email
+    icon: icon-email
+    url: mailto://matt@mgibson.ca
+  - name: Github
+    icon: icon-github
+    url: https://github.com/Chemiseblanc
+  - name: Instagram
+    icon: icon-instagram
+    url: https://www.instagram.com/chemiseblanc/
+  - name: Resume
+    icon: file
+    url: https://mgibson.ca/resume.pdf
